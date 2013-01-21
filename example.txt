@@ -1,0 +1,34 @@
+Chops:
+ - OKCGO (chop 13)
+   - TwoSigmasDown (team 1) with 45 shares
+   - David (team 2) with 45 shares
+   - RWM (team 3) with 10 shares
+
+Line items:
+ - 2013-01-25 Blackjack at OKC $100000
+   - by TwoSigmasDown (team 1)
+   - chop OKCGO (chop 1)
+   - into triproll (pool 1)
+ - 2013-01-25 Blackjack at OKC -$50000
+   - by Dave (team 2)
+   - chop OKCGO (chop 1)
+   - into triproll (pool 5)
+ - 2013-01-25 Flight to Las Vegas $236
+   - by TwoSigmasDown (team 1)
+   - chop OKCGO (chop 1)
+   - from credit card (pool 2)
+   - travel expense
+
+Balances (calculated from line items):
+ - triproll (pool 1):  $100000
+ - credit card (pool 2): -$236
+ - triproll (pool 5):  -$50000
+
+Chop results (based on chop and team):
+ - TwoSigmasDown (chop 13, team 1): $99764
+ - David (chop 13, team 2):        -$50000
+
+Actuals for chop OKCGO (chop 13) (sum chop results and divide according to shares):
+ - TwoSigmasDown: $22393.80
+ - David:         $22393.80
+ - RWM:            $4976.40
