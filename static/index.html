@@ -33,7 +33,7 @@ function addTeam() {
 			.append($(document.createElement("BUTTON"))
 				.click(function () {
 					$.ajax({
-						url: "teams.php",
+						url: "teams",
 						type: "POST",
 						data: {
 							action: "addTeam",
@@ -67,7 +67,7 @@ $(function () {
 	"use strict";
 
 	$.ajax({
-		url: "teams.php",
+		url: "teams",
 		type: "GET",
 		dataType: "json",
 		success: function (data, textStatus, jqXHR) {
