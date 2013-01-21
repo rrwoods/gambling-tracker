@@ -2,7 +2,6 @@ import bottle
 import sqlite3
 
 SQLITE3_FILE = "2013.sqlite3"
-connection = sqlite3.connect(SQLITE3_FILE)
 
 def initializeDatabase(connection):
 	# Layer 1 tables which all other tables depend on
@@ -90,21 +89,11 @@ def initializeDatabase(connection):
 
 @bottle.route("/teams")
 def teams():
-	rows = connection.execute("""
-		SELECT
-			teamID,
-			name
-		FROM team
-		ORDER BY teamID ASC
-	""")
-	output = {"teams": []}
-	for row in rows:
-		teamID = int(row["teamID"])
-		name = str(row["name"])
-		output["teams"].append({"teamID": teamID, "name": name})
-	return output
+	return "Hello World"
 
 if __name__ == "__main__":
+	print("Opening database")
+	connection = sqlite3.connect(SQLITE3_FILE)
 	print("Initializing database")
 	initializeDatabase(connection)
 	bottle.run(host = "localhost", port = 8080)
