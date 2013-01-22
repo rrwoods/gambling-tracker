@@ -14,8 +14,8 @@ def initializeDatabase(connection):
 		CREATE TABLE IF NOT EXISTS chops
 		(
 			chopID      INTEGER      NOT NULL PRIMARY KEY AUTOINCREMENT,
-			started     TIMESTAMP    NOT NULL,
-			ended       TIMESTAMP    NOT NULL,
+			started     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			ended       TIMESTAMP,
 			description VARCHAR(256) NOT NULL
 		)
 	""")
@@ -97,19 +97,45 @@ def teams():
 	""")
 	output = {"teams": []}
 	for row in rows:
-		teamID = int(row["teamID"])
-		name = str(row["name"])
+		teamID = int(row[0])
+		name = str(row[1])
 		output["teams"].append({"teamID": teamID, "name": name})
 	return output
 
 @bottle.route("/teams/add/:name", method = "POST")
 def teamsAdd(name):
-	print(name)
 	cursor = connection.cursor()
+
 	cursor.execute("""
-		INSERT INTO teams(name)
+		INSERT INTO chops(description)
 		VALUES (?)
-	""", (name, ))
+	""", (name + " default chop", ))
+	defaultChopID = cursor.lastrowid
+
+	# The real value for triprollPoolID will be assigned below
+	cursor.execute("""
+		INSERT INTO teams(name, defaultChopID, triprollPoolID)
+		VALUES (?, ?, ?)
+	""", (name, defaultChopID, -1))
+	teamID = cursor.lastrowid
+
+	cursor.execute("""
+		INSERT INTO pools(teamID, description)
+		VALUES (?, ?)
+	""", (teamID, name + " triproll"))
+	triprollPoolID = cursor.lastrowid
+
+	cursor.execute("""
+		UPDATE teams
+		SET triprollPoolID = ?
+		WHERE teamID = ?
+	""", (triprollPoolID, teamID))
+
+	cursor.execute("""
+		INSERT INTO chopParticipants(chopID, teamID, shares)
+		VALUES (?, ?, ?)
+	""", (defaultChopID, teamID, 1))
+
 	connection.commit()
 	return {"teamID": cursor.lastrowid, "name": name}
 
