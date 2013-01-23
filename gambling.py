@@ -145,7 +145,7 @@ def teamsEdit(teamID, name):
 		UPDATE teams
 		SET name = ?
 		WHERE teamID = ?
-	""", name, teamID)
+	""", (name, teamID))
 	connection.commit()
 	return {"teamID": teamID, "name": name}
 
