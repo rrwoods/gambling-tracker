@@ -1,62 +1,12 @@
 (function ($, document) {
 	"use strict";
 
-	function addTeam() {
-		var $IDCell, $input, $nameCell, $operationsCell;
-
-		$input = $(document.createElement("INPUT"));
-
-		$IDCell = $(document.createElement("TD")).text("Auto");
-		$nameCell = $(document.createElement("TD")).append($input);
-		$operationsCell = $(document.createElement("TD"));
-
-		$("#teamRows").append($(document.createElement("TR"))
-			.append($IDCell)
-			.append($nameCell)
-			.append($operationsCell
-				.append($(document.createElement("BUTTON"))
-					.click(function () {
-						$.ajax({
-							url: "teams/add",
-							type: "POST",
-							data: {
-								name: $input.val()
-							},
-							dataType: "json",
-							error: function (jqXHR, textStatus, errorThrown) {
-								alert(textStatus + errorThrown);
-							},
-							success: function (data, textStatus, jqXHR) {
-								if(data.hasOwnProperty("error")) {
-									alert(data.error);
-								} else {
-									$IDCell.text(data.teamID);
-									$nameCell.text(data.name);
-									$operationsCell
-										.empty()
-										.append($(document.createElement("BUTTON"))
-											.click(function () {
-												editTeam(data.teamID, data.name, $nameCell, $operationsCell)
-											})
-											.text("Edit")
-										);
-								}
-							}
-						});
-					})
-					.text("Save")
-				)
-			)
-		);
-	}
-
 	function editTeam(teamID, name, $nameCell, $operationsCell) {
 		var $input = $(document.createElement("INPUT"))
 			.val(name);
 
-		$nameCell
-			.empty()
-			.append($input);
+		$nameCell.empty();
+		$nameCell.append($input);
 
 		$operationsCell
 			.empty()
@@ -78,14 +28,13 @@
 								alert(data.error);
 							} else {
 								$nameCell.text(data.name);
-								$operationsCell
-									.empty()
-									.append($(document.createElement("BUTTON"))
-										.click(function () {
-											editTeam(data.teamID, data.name, $nameCell, $operationsCell)
-										})
-										.text("Edit")
-									);
+								$operationsCell.empty();
+								$operationsCell.append($(document.createElement("BUTTON"))
+									.click(function () {
+										editTeam(data.teamID, data.name, $nameCell, $operationsCell)
+									})
+									.text("Edit")
+								);
 							}
 						}
 					});
@@ -124,6 +73,52 @@
 			}
 		});
 
-		$("#addTeamButton").click(addTeam);
+		$("#addTeamButton").click(function () {
+			var $IDCell, $input, $nameCell, $operationsCell;
+
+			$input = $(document.createElement("INPUT"));
+
+			$IDCell = $(document.createElement("TD")).text("Auto");
+			$nameCell = $(document.createElement("TD")).append($input);
+			$operationsCell = $(document.createElement("TD"));
+
+			$("#teamRows").append($(document.createElement("TR"))
+				.append($IDCell)
+				.append($nameCell)
+				.append($operationsCell
+					.append($(document.createElement("BUTTON"))
+						.click(function () {
+							$.ajax({
+								url: "teams/add",
+								type: "POST",
+								data: {
+									name: $input.val()
+								},
+								dataType: "json",
+								error: function (jqXHR, textStatus, errorThrown) {
+									alert(textStatus + errorThrown);
+								},
+								success: function (data, textStatus, jqXHR) {
+									if(data.hasOwnProperty("error")) {
+										alert(data.error);
+									} else {
+										$IDCell.text(data.teamID);
+										$nameCell.text(data.name);
+										$operationsCell.empty();
+										$operationsCell.append($(document.createElement("BUTTON"))
+											.click(function () {
+												editTeam(data.teamID, data.name, $nameCell, $operationsCell)
+											})
+											.text("Edit")
+										);
+									}
+								}
+							});
+						})
+						.text("Save")
+					)
+				)
+			);
+		});
 	});
 }(jQuery, document));
