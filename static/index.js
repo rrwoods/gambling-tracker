@@ -17,8 +17,11 @@
 				.append($(document.createElement("BUTTON"))
 					.click(function () {
 						$.ajax({
-							url: "teams/add/" + $input.val(),
+							url: "teams/add",
 							type: "POST",
+							data: {
+								name: $input.val()
+							},
 							dataType: "json",
 							error: function (jqXHR, textStatus, errorThrown) {
 								alert(textStatus + errorThrown);
@@ -60,8 +63,12 @@
 			.append($(document.createElement("BUTTON"))
 				.click(function () {
 					$.ajax({
-						url: "teams/edit/" + teamID + "/" + $input.val(),
+						url: "teams/edit",
 						type: "POST",
+						data: {
+							name: $input.val(),
+							teamID: teamID
+						},
 						dataType: "json",
 						error: function (jqXHR, textStatus, errorThrown) {
 							alert(textStatus + errorThrown);

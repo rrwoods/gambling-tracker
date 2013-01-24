@@ -102,8 +102,10 @@ def teams():
 		output["teams"].append({"teamID": teamID, "name": name})
 	return output
 
-@bottle.route("/teams/add/:name", method = "POST")
-def teamsAdd(name):
+@bottle.route("/teams/add", method = "POST")
+def teamsAdd():
+	name = bottle.request.forms.name
+
 	cursor = connection.cursor()
 
 	cursor.execute("""
@@ -139,8 +141,11 @@ def teamsAdd(name):
 	connection.commit()
 	return {"teamID": cursor.lastrowid, "name": name}
 
-@bottle.route("/teams/edit/:teamID/:name", method = "POST")
-def teamsEdit(teamID, name):
+@bottle.route("/teams/edit", method = "POST")
+def teamsEdit():
+	name = bottle.request.forms.name
+	teamID = bottle.request.forms.teamID
+
 	connection.execute("""
 		UPDATE teams
 		SET name = ?
