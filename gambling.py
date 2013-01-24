@@ -86,6 +86,24 @@ def initializeDatabase(connection):
 def static(filename):
 	return bottle.static_file(filename, root = "static/")
 
+@bottle.route("/pools")
+def pools():
+	rows = connection.execute("""
+		SELECT
+			poolID,
+			teamID,
+			description
+		FROM pools
+		ORDER BY poolID ASC
+	""")
+	output = {"pools": []}
+	for row in rows:
+		poolID = int(row[0])
+		teamID = int(row[1])
+		description = str(row[2])
+		output["pools"].append({"poolID": poolID, "teamID": teamID, "description": description})
+	return output
+
 @bottle.route("/teams")
 def teams():
 	rows = connection.execute("""
@@ -104,27 +122,29 @@ def teams():
 
 @bottle.route("/teams/add", method = "POST")
 def teamsAdd():
-	name = bottle.request.forms.name
+	teamName = bottle.request.forms.name
 
 	cursor = connection.cursor()
 
+	defaultChopDescription = teamName + " default chop"
 	cursor.execute("""
 		INSERT INTO chops(description)
 		VALUES (?)
-	""", (name + " default chop", ))
+	""", (defaultChopDescription, ))
 	defaultChopID = cursor.lastrowid
 
 	# The real value for triprollPoolID will be assigned below
 	cursor.execute("""
 		INSERT INTO teams(name, defaultChopID, triprollPoolID)
 		VALUES (?, ?, ?)
-	""", (name, defaultChopID, -1))
+	""", (teamName, defaultChopID, -1))
 	teamID = cursor.lastrowid
 
+	triprollPoolName = teamName + " triproll"
 	cursor.execute("""
 		INSERT INTO pools(teamID, description)
 		VALUES (?, ?)
-	""", (teamID, name + " triproll"))
+	""", (teamID, triprollPoolName))
 	triprollPoolID = cursor.lastrowid
 
 	cursor.execute("""
@@ -133,13 +153,22 @@ def teamsAdd():
 		WHERE teamID = ?
 	""", (triprollPoolID, teamID))
 
+	defaultChopShares = 1
 	cursor.execute("""
 		INSERT INTO chopParticipants(chopID, teamID, shares)
 		VALUES (?, ?, ?)
-	""", (defaultChopID, teamID, 1))
+	""", (defaultChopID, teamID, defaultChopShares))
 
 	connection.commit()
-	return {"teamID": cursor.lastrowid, "name": name}
+	return {
+		"defaultChopDescription": defaultChopDescription,
+		"defaultChopID": defaultChopID,
+		"defaultChopShares": defaultChopShares,
+		"teamID": teamID,
+		"teamName": teamName,
+		"triprollPoolID": triprollPoolID,
+		"triprollPoolName": triprollPoolName
+	}
 
 @bottle.route("/teams/edit", method = "POST")
 def teamsEdit():

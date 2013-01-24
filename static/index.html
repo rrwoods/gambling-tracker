@@ -1,6 +1,29 @@
 <!DOCTYPE html>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Gambling Tracker</title>
+<h1>Chops</h1>
+<table border="1">
+	<thead><tr>
+		<th>Chop ID</th>
+		<th>Description</th>
+		<th>Operations</th>
+	</tr></thead>
+	<tbody id="chopRows">
+	</tbody>
+</table>
+<button id="addChopButton">Add Chop</button>
+<h1>Pools</h1>
+<table border="1">
+	<thead><tr>
+		<th>Pool ID</th>
+		<th>Team</th>
+		<th>Description</th>
+		<th>Operations</th>
+	</tr></thead>
+	<tbody id="poolRows">
+	</tbody>
+</table>
+<button id="addPoolButton">Add Pool</button>
 <h1>Teams</h1>
 <table border="1">
 	<thead><tr>
@@ -8,11 +31,9 @@
 		<th>Name</th>
 		<th>Operations</th>
 	</tr></thead>
-	<tfoot><tr id="addTeamRow">
-		<td colspan="3"><button id="addTeamButton">Add Team</button></td>
-	</tr></tfoot>
 	<tbody id="teamRows">
 	</tbody>
 </table>
+<button id="addTeamButton">Add Team</button>
 <script src="static/jquery-1.9.0.min.js" type="text/javascript"></script>
 <script src="static/index.js" type="text/javascript"></script>
