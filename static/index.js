@@ -5,12 +5,12 @@
 
 	teams = {};
 
-	function addChop(chopID, description) {
+	function addChop(chopID, description, started) {
 		$("#chopRows").append($("<tr></tr>")
 			.append($("<td></td>").text(chopID))
 			.append($("<td></td>").text(description))
-			.append($("<td></td>")
-			)
+			.append($("<td></td>").text(started))
+			.append($("<td></td>"))
 		);
 	}
 
@@ -63,6 +63,18 @@
 	}
 
 	$(function () {
+		$.ajax({
+			url: "chops",
+			type: "GET",
+			dataType: "json",
+			success: function (data, textStatus, jqXHR) {
+				console.log(data)
+				$.each(data.chops, function (index, value) {
+					addChop(value.chopID, value.description, value.started);
+				});
+			}
+		});
+
 		$.ajax({
 			url: "teams",
 			type: "GET",

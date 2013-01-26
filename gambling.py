@@ -1,9 +1,29 @@
 import bottle
+import json
 import sqlite3
 
 SQLITE3_DATABASE = "2013.sqlite3"
 SQLITE3_SCHEMA = "schema.sql"
 connection = sqlite3.connect(SQLITE3_DATABASE)
+
+@bottle.route("/chops")
+def chops():
+	rows = connection.execute("""
+		SELECT
+			chopID,
+			description,
+			started
+		FROM chops
+		WHERE ended IS NULL
+		ORDER BY chopID ASC
+	""")
+	output = {"chops": []}
+	for row in rows:
+		chopID = int(row[0])
+		description = str(row[1])
+		started = str(row[2])
+		output["chops"].append({"chopID": chopID, "description": description, "started": started})
+	return output
 
 @bottle.route("/")
 def index():
@@ -33,6 +53,15 @@ def pools():
 		description = str(row[2])
 		output["pools"].append({"poolID": poolID, "teamID": teamID, "description": description})
 	return output
+
+@bottle.route("/select")
+def select():
+	statement = bottle.request.query.statement
+	rows = connection.execute("SELECT " + statement)
+	output = []
+	for row in rows:
+		output.append(row)
+	return json.dumps(output)
 
 @bottle.route("/static/<filename:path>")
 def static(filename):
