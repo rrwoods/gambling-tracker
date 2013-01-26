@@ -1,4 +1,4 @@
-(function ($, document) {
+(function ($) {
 	"use strict";
 
 	var teams;
@@ -25,14 +25,13 @@
 	}
 
 	function editTeam(teamID, name, $nameCell, $operationsCell) {
-		var $input = $(document.createElement("INPUT"))
-			.val(name);
+		var $input = $("<input>").val(name);
 
 		$nameCell.empty();
 		$nameCell.append($input);
 
 		$operationsCell.empty();
-		$operationsCell.append($(document.createElement("BUTTON"))
+		$operationsCell.append($("<button>Save</button>")
 			.click(function () {
 				$.ajax({
 					url: "teams/edit",
@@ -51,17 +50,15 @@
 						} else {
 							$nameCell.text(data.name);
 							$operationsCell.empty();
-							$operationsCell.append($(document.createElement("BUTTON"))
+							$operationsCell.append($("<button>Edit</button>")
 								.click(function () {
 									editTeam(data.teamID, data.name, $nameCell, $operationsCell)
 								})
-								.text("Edit")
 							);
 						}
 					}
 				});
 			})
-			.text("Save")
 		);
 	}
 
@@ -76,22 +73,18 @@
 
 					teams[value.teamID] = value.name;
 
-					$nameCell = $(document.createElement("TD"));
-					$operationsCell = $(document.createElement("TD"));
+					$nameCell = $("<td></td>").text(value.name);
+					$operationsCell = $("<td></td>")
+						.append($("<button>Edit</button>")
+							.click(function () {
+								editTeam(value.teamID, value.name, $nameCell, $operationsCell)
+							})
+						);
 
-					$("#teamRows").append($(document.createElement("TR"))
-						.append($(document.createElement("TD"))
-							.text(value.teamID)
-						).append($nameCell
-							.text(value.name)
-						).append($operationsCell
-							.append($(document.createElement("BUTTON"))
-								.click(function () {
-									editTeam(value.teamID, value.name, $nameCell, $operationsCell)
-								})
-								.text("Edit")
-							)
-						)
+					$("#teamRows").append($("<tr></tr>")
+						.append($("<td></td>").text(value.teamID))
+						.append($nameCell)
+						.append($operationsCell)
 					);
 				});
 			}
@@ -111,52 +104,49 @@
 		$("#addTeamButton").click(function () {
 			var $IDCell, $input, $nameCell, $operationsCell;
 
-			$input = $(document.createElement("INPUT"));
+			$input = $("<input>");
 
-			$IDCell = $(document.createElement("TD")).text("Auto");
-			$nameCell = $(document.createElement("TD")).append($input);
-			$operationsCell = $(document.createElement("TD"));
+			$IDCell = $("<td></td>").text("Auto");
+			$nameCell = $("<td></td>").append($input);
+			$operationsCell = $("<td></td>")
+				.append($("<button>Save</button>")
+					.click(function () {
+						$.ajax({
+							url: "teams/add",
+							type: "POST",
+							data: {
+								name: $input.val()
+							},
+							dataType: "json",
+							error: function (jqXHR, textStatus, errorThrown) {
+								alert(textStatus + errorThrown);
+							},
+							success: function (data, textStatus, jqXHR) {
+								if(data.hasOwnProperty("error")) {
+									alert(data.error);
+								} else {
+									$IDCell.text(data.teamID);
+									$nameCell.text(data.teamName);
+									$operationsCell.empty();
+									$operationsCell.append($("<button>Edit</button>")
+										.click(function () {
+											editTeam(data.teamID, data.name, $nameCell, $operationsCell)
+										})
+									);
 
-			$("#teamRows").append($(document.createElement("TR"))
+									addChop(data.defaultChopID, data.defaultChopDescription);
+									addPool(data.triprollPoolID, data.teamName, data.triprollPoolName);
+								}
+							}
+						});
+					})
+				);
+
+			$("#teamRows").append($("<tr></tr>")
 				.append($IDCell)
 				.append($nameCell)
-				.append($operationsCell
-					.append($(document.createElement("BUTTON"))
-						.click(function () {
-							$.ajax({
-								url: "teams/add",
-								type: "POST",
-								data: {
-									name: $input.val()
-								},
-								dataType: "json",
-								error: function (jqXHR, textStatus, errorThrown) {
-									alert(textStatus + errorThrown);
-								},
-								success: function (data, textStatus, jqXHR) {
-									if(data.hasOwnProperty("error")) {
-										alert(data.error);
-									} else {
-										$IDCell.text(data.teamID);
-										$nameCell.text(data.teamName);
-										$operationsCell.empty();
-										$operationsCell.append($(document.createElement("BUTTON"))
-											.click(function () {
-												editTeam(data.teamID, data.name, $nameCell, $operationsCell)
-											})
-											.text("Edit")
-										);
-
-										addChop(data.defaultChopID, data.defaultChopDescription);
-										addPool(data.triprollPoolID, data.teamName, data.triprollPoolName);
-									}
-								}
-							});
-						})
-						.text("Save")
-					)
-				)
+				.append($operationsCell)
 			);
 		});
 	});
-}(jQuery, document));
+}(jQuery));
