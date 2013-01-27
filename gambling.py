@@ -25,6 +25,24 @@ def chops():
 		output["chops"].append({"chopID": chopID, "description": description, "started": started})
 	return output
 
+@bottle.route("/execute", method = "POST")
+def execute():
+	statement = formParameter("statement")
+	rows = connection.execute(statement)
+	# rows isn't a type the JSON library knows how to encode by default, but
+	# tuple is, so use it for output instead
+	output = tuple(rows)
+	# This function should return JSON data, but Bottle doesn't automatically
+	# translate tuples into JSON, so do it manually
+	return json.dumps(output)
+
+def formParameter(name):
+	if name in bottle.request.forms:
+		# Use getattr to take advantage of Bottle automatically decoding the
+		# parameter
+		return getattr(bottle.request.forms, name)
+	raise bottle.HTTPResponse(status = 400, body = "Expected form parameter " + name)
+
 @bottle.route("/")
 def index():
 	return bottle.static_file("index.html", root = "static/")
@@ -54,14 +72,12 @@ def pools():
 		output["pools"].append({"poolID": poolID, "teamID": teamID, "description": description})
 	return output
 
-@bottle.route("/select")
-def select():
-	statement = bottle.request.query.statement
-	rows = connection.execute("SELECT " + statement)
-	output = []
-	for row in rows:
-		output.append(row)
-	return json.dumps(output)
+def queryParameter(name):
+	if name in bottle.request.query:
+		# Use getattr to take advantage of Bottle automatically decoding the
+		# parameter
+		return getattr(bottle.request.query, name)
+	raise bottle.HTTPResponse(status = 400, body = "Expected query parameter " + name)
 
 @bottle.route("/static/<filename:path>")
 def static(filename):
@@ -85,7 +101,7 @@ def teams():
 
 @bottle.route("/teams/add", method = "POST")
 def teamsAdd():
-	teamName = bottle.request.forms.name
+	teamName = formParameter("name")
 
 	cursor = connection.cursor()
 
@@ -135,8 +151,8 @@ def teamsAdd():
 
 @bottle.route("/teams/edit", method = "POST")
 def teamsEdit():
-	name = bottle.request.forms.name
-	teamID = bottle.request.forms.teamID
+	name = formParameter("name")
+	teamID = formParameter("teamID")
 
 	connection.execute("""
 		UPDATE teams
