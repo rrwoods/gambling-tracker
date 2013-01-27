@@ -165,19 +165,6 @@ def teamsAdd():
 		"triprollPool": triprollPool
 	}
 
-@bottle.route("/teams/edit", method = "POST")
-def teamsEdit():
-	name = formParameter("name")
-	teamID = formParameter("teamID")
-
-	connection.execute("""
-		UPDATE teams
-		SET name = ?
-		WHERE teamID = ?
-	""", (name, teamID))
-	connection.commit()
-	return {"teamID": teamID, "name": name}
-
 if __name__ == "__main__":
 	print("Initializing database")
 	initializeDatabase(connection)

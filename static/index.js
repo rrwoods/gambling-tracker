@@ -39,37 +39,6 @@
 		);
 	}
 
-	function editTeam(team, $nameCell, $operationsCell) {
-		var $input = $("<input>").val(team.name);
-
-		$nameCell.empty();
-		$nameCell.append($input);
-
-		$operationsCell.empty();
-		$operationsCell.append($("<button>Save</button>")
-			.click(function () {
-				$.ajax({
-					url: "teams/edit",
-					type: "POST",
-					data: {
-						name: $input.val(),
-						teamID: team.teamID
-					},
-					dataType: "json",
-					success: function (data, textStatus, jqXHR) {
-						$nameCell.text(data.name);
-						$operationsCell.empty();
-						$operationsCell.append($("<button>Edit</button>")
-							.click(function () {
-								editTeam(data, $nameCell, $operationsCell)
-							})
-						);
-					}
-				});
-			})
-		);
-	}
-
 	$(document).ajaxError(function (event, jqXHR, ajaxSettings, thrownError) {
 		console.error("AJAX error with status " + jqXHR.status + ": \"" + jqXHR.statusText + "\"");
 		if(jqXHR.hasOwnProperty("responseText")) {
@@ -96,22 +65,12 @@
 			dataType: "json",
 			success: function (data, textStatus, jqXHR) {
 				$.each(data, function (index, value) {
-					var $nameCell, $operationsCell;
-
 					teams[value.teamID] = value.name;
-
-					$nameCell = $("<td></td>").text(value.name);
-					$operationsCell = $("<td></td>")
-						.append($("<button>Edit</button>")
-							.click(function () {
-								editTeam(value, $nameCell, $operationsCell)
-							})
-						);
 
 					$("#teamRows").append($("<tr></tr>")
 						.append($("<td></td>").text(value.teamID))
-						.append($nameCell)
-						.append($operationsCell)
+						.append($("<td></td>").text(value.name))
+						.append($("<td></td>"))
 					);
 				});
 			}
@@ -151,11 +110,6 @@
 								$IDCell.text(data.teamID);
 								$nameCell.text(data.name);
 								$operationsCell.empty();
-								$operationsCell.append($("<button>Edit</button>")
-									.click(function () {
-										editTeam(data.teamID, data.name, $nameCell, $operationsCell)
-									})
-								);
 
 								addChop(data.defaultChop);
 								addPool(data.triprollPool);
