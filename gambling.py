@@ -1,4 +1,7 @@
 import bottle
+# Any function with a route should return a JSON string, but Bottle doesn't
+# automatically translate lists/tuples into JSON, so use this library to do it
+# manually
 import json
 import sqlite3
 
@@ -17,13 +20,17 @@ def chops():
 		WHERE ended IS NULL
 		ORDER BY chopID ASC
 	""")
-	output = {"chops": []}
-	for row in rows:
-		chopID = int(row[0])
-		description = str(row[1])
-		started = str(row[2])
-		output["chops"].append({"chopID": chopID, "description": description, "started": started})
-	return output
+	return json.dumps([{
+		"chopID": int(row[0]),
+		"description": str(row[1]),
+		"started": str(row[2])
+	} for row in rows])
+
+# Anytime we have an error caused by us, not by the client
+@bottle.error(500)
+def error(exception):
+	connection.rollback()
+	return exception.body
 
 @bottle.route("/execute", method = "POST")
 def execute():
@@ -31,10 +38,7 @@ def execute():
 	rows = connection.execute(statement)
 	# rows isn't a type the JSON library knows how to encode by default, but
 	# tuple is, so use it for output instead
-	output = tuple(rows)
-	# This function should return JSON data, but Bottle doesn't automatically
-	# translate tuples into JSON, so do it manually
-	return json.dumps(output)
+	return json.dumps(tuple(rows))
 
 def formParameter(name):
 	if name in bottle.request.forms:
@@ -73,12 +77,12 @@ def pools():
 		FROM pools
 		ORDER BY poolID ASC
 	""")
-	return {"pools": [{
+	return json.dumps([{
 		"poolID": int(row[0]),
 		"teamID": int(row[1]),
 		"description": str(row[2]),
 		"balance": float(row[3])
-	} for row in rows]}
+	} for row in rows])
 
 def queryParameter(name):
 	if name in bottle.request.query:
@@ -100,61 +104,65 @@ def teams():
 		FROM teams
 		ORDER BY teamID ASC
 	""")
-	output = {"teams": []}
-	for row in rows:
-		teamID = int(row[0])
-		name = str(row[1])
-		output["teams"].append({"teamID": teamID, "name": name})
-	return output
+	return json.dumps([{
+		"teamID": int(row[0]),
+		"name": str(row[1])
+	} for row in rows])
 
 @bottle.route("/teams/add", method = "POST")
 def teamsAdd():
-	teamName = formParameter("name")
+	name = formParameter("name")
+
+	defaultChop = {"description": name + " default chop"}
+	triprollPool = {"description": name + " triproll", "balance": 0.0}
 
 	cursor = connection.cursor()
 
-	defaultChopDescription = teamName + " default chop"
 	cursor.execute("""
 		INSERT INTO chops(description)
 		VALUES (?)
-	""", (defaultChopDescription, ))
-	defaultChopID = cursor.lastrowid
+	""", (defaultChop["description"], ))
+	defaultChop["chopID"] = cursor.lastrowid
+
+	rows = cursor.execute("""
+		SELECT started
+		FROM chops
+		WHERE chopID = ?
+	""", (defaultChop["chopID"], ))
+	for row in rows:
+		defaultChop["started"] = str(row[0])
 
 	# The real value for triprollPoolID will be assigned below
 	cursor.execute("""
 		INSERT INTO teams(name, defaultChopID, triprollPoolID)
 		VALUES (?, ?, ?)
-	""", (teamName, defaultChopID, -1))
+	""", (name, defaultChop["chopID"], -1))
 	teamID = cursor.lastrowid
 
-	triprollPoolName = teamName + " triproll"
 	cursor.execute("""
 		INSERT INTO pools(teamID, description)
 		VALUES (?, ?)
-	""", (teamID, triprollPoolName))
-	triprollPoolID = cursor.lastrowid
+	""", (teamID, triprollPool["description"]))
+	triprollPool["poolID"] = cursor.lastrowid
+	triprollPool["teamID"] = teamID
 
 	cursor.execute("""
 		UPDATE teams
 		SET triprollPoolID = ?
 		WHERE teamID = ?
-	""", (triprollPoolID, teamID))
+	""", (triprollPool["poolID"], teamID))
 
-	defaultChopShares = 1
 	cursor.execute("""
 		INSERT INTO chopParticipants(chopID, teamID, shares)
 		VALUES (?, ?, ?)
-	""", (defaultChopID, teamID, defaultChopShares))
+	""", (defaultChop["chopID"], teamID, 1))
 
 	connection.commit()
 	return {
-		"defaultChopDescription": defaultChopDescription,
-		"defaultChopID": defaultChopID,
-		"defaultChopShares": defaultChopShares,
 		"teamID": teamID,
-		"teamName": teamName,
-		"triprollPoolID": triprollPoolID,
-		"triprollPoolName": triprollPoolName
+		"name": name,
+		"defaultChop": defaultChop,
+		"triprollPool": triprollPool
 	}
 
 @bottle.route("/teams/edit", method = "POST")

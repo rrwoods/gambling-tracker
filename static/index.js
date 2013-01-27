@@ -5,11 +5,11 @@
 
 	teams = {};
 
-	function addChop(chopID, description, started) {
+	function addChop(chop) {
 		$("#chopRows").append($("<tr></tr>")
-			.append($("<td></td>").text(chopID))
-			.append($("<td></td>").text(description))
-			.append($("<td></td>").text(started))
+			.append($("<td></td>").text(chop.chopID))
+			.append($("<td></td>").text(chop.description))
+			.append($("<td></td>").text(chop.started))
 			.append($("<td></td>")
 				.append($("<button>Close</button>")
 					.click(function () {
@@ -17,7 +17,7 @@
 							url: "chops/close",
 							type: "POST",
 							data: {
-								chopID: chopID
+								chopID: chop.chopID
 							},
 							dataType: "json",
 							success: function (data, textStatus, jqXHR) {
@@ -30,17 +30,17 @@
 		);
 	}
 
-	function addPool(poolID, teamName, poolName, balance) {
+	function addPool(pool) {
 		$("#poolRows").append($("<tr></tr>")
-			.append($("<td></td>").text(poolID))
-			.append($("<td></td>").text(teamName))
-			.append($("<td></td>").text(poolName))
-			.append($("<td></td>").text(balance))
+			.append($("<td></td>").text(pool.poolID))
+			.append($("<td></td>").text(teams[pool.teamID]))
+			.append($("<td></td>").text(pool.description))
+			.append($("<td></td>").text(pool.balance))
 		);
 	}
 
-	function editTeam(teamID, name, $nameCell, $operationsCell) {
-		var $input = $("<input>").val(name);
+	function editTeam(team, $nameCell, $operationsCell) {
+		var $input = $("<input>").val(team.name);
 
 		$nameCell.empty();
 		$nameCell.append($input);
@@ -53,7 +53,7 @@
 					type: "POST",
 					data: {
 						name: $input.val(),
-						teamID: teamID
+						teamID: team.teamID
 					},
 					dataType: "json",
 					success: function (data, textStatus, jqXHR) {
@@ -61,7 +61,7 @@
 						$operationsCell.empty();
 						$operationsCell.append($("<button>Edit</button>")
 							.click(function () {
-								editTeam(data.teamID, data.name, $nameCell, $operationsCell)
+								editTeam(data, $nameCell, $operationsCell)
 							})
 						);
 					}
@@ -84,8 +84,8 @@
 			type: "GET",
 			dataType: "json",
 			success: function (data, textStatus, jqXHR) {
-				$.each(data.chops, function (index, value) {
-					addChop(value.chopID, value.description, value.started);
+				$.each(data, function (index, value) {
+					addChop(value);
 				});
 			}
 		});
@@ -95,7 +95,7 @@
 			type: "GET",
 			dataType: "json",
 			success: function (data, textStatus, jqXHR) {
-				$.each(data.teams, function (index, value) {
+				$.each(data, function (index, value) {
 					var $nameCell, $operationsCell;
 
 					teams[value.teamID] = value.name;
@@ -104,7 +104,7 @@
 					$operationsCell = $("<td></td>")
 						.append($("<button>Edit</button>")
 							.click(function () {
-								editTeam(value.teamID, value.name, $nameCell, $operationsCell)
+								editTeam(value, $nameCell, $operationsCell)
 							})
 						);
 
@@ -122,8 +122,8 @@
 			type: "GET",
 			dataType: "json",
 			success: function (data, textStatus, jqXHR) {
-				$.each(data.pools, function (index, value) {
-					addPool(value.poolID, teams[value.teamID], value.description, value.balance);
+				$.each(data, function (index, value) {
+					addPool(value);
 				});
 			}
 		});
@@ -146,8 +146,10 @@
 							},
 							dataType: "json",
 							success: function (data, textStatus, jqXHR) {
+								teams[data.teamID] = data.name;
+
 								$IDCell.text(data.teamID);
-								$nameCell.text(data.teamName);
+								$nameCell.text(data.name);
 								$operationsCell.empty();
 								$operationsCell.append($("<button>Edit</button>")
 									.click(function () {
@@ -155,8 +157,8 @@
 									})
 								);
 
-								addChop(data.defaultChopID, data.defaultChopDescription);
-								addPool(data.triprollPoolID, data.teamName, data.triprollPoolName, 0);
+								addChop(data.defaultChop);
+								addPool(data.triprollPool);
 							}
 						});
 					})
