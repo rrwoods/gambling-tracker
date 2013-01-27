@@ -30,13 +30,12 @@
 		);
 	}
 
-	function addPool(poolID, teamName, poolName) {
+	function addPool(poolID, teamName, poolName, balance) {
 		$("#poolRows").append($("<tr></tr>")
 			.append($("<td></td>").text(poolID))
 			.append($("<td></td>").text(teamName))
 			.append($("<td></td>").text(poolName))
-			.append($("<td></td>")
-			)
+			.append($("<td></td>").text(balance))
 		);
 	}
 
@@ -124,7 +123,7 @@
 			dataType: "json",
 			success: function (data, textStatus, jqXHR) {
 				$.each(data.pools, function (index, value) {
-					addPool(value.poolID, teams[value.teamID], value.description);
+					addPool(value.poolID, teams[value.teamID], value.description, value.balance);
 				});
 			}
 		});
@@ -157,7 +156,7 @@
 								);
 
 								addChop(data.defaultChopID, data.defaultChopDescription);
-								addPool(data.triprollPoolID, data.teamName, data.triprollPoolName);
+								addPool(data.triprollPoolID, data.teamName, data.triprollPoolName, 0);
 							}
 						});
 					})

@@ -60,17 +60,25 @@ def pools():
 		SELECT
 			poolID,
 			teamID,
-			description
+			description,
+			(
+				SELECT total(amount)
+				FROM entries
+				WHERE intoPoolID = poolID
+			) - (
+				SELECT total(amount)
+				FROM entries
+				WHERE fromPoolID = poolID
+			) as balance
 		FROM pools
 		ORDER BY poolID ASC
 	""")
-	output = {"pools": []}
-	for row in rows:
-		poolID = int(row[0])
-		teamID = int(row[1])
-		description = str(row[2])
-		output["pools"].append({"poolID": poolID, "teamID": teamID, "description": description})
-	return output
+	return {"pools": [{
+		"poolID": int(row[0]),
+		"teamID": int(row[1]),
+		"description": str(row[2]),
+		"balance": float(row[3])
+	} for row in rows]}
 
 def queryParameter(name):
 	if name in bottle.request.query:
