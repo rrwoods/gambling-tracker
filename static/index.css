@@ -1,0 +1,7 @@
+.chop {
+	border: 1px solid black;
+	display: inline-block;
+	margin: 0 0.5em 0 0; /* top right bottom left*/
+	padding: 0.5em;
+	width: 25em;
+}

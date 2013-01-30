@@ -6,27 +6,27 @@
 	teams = {};
 
 	function addChop(chop) {
-		$("#chopRows").append($("<tr></tr>")
-			.append($("<td></td>").text(chop.chopID))
-			.append($("<td></td>").text(chop.description))
-			.append($("<td></td>").text(chop.started))
-			.append($("<td></td>")
-				.append($("<button>Close</button>")
-					.click(function () {
-						$.ajax({
-							url: "chops/close",
-							type: "POST",
-							data: {
-								chopID: chop.chopID
-							},
-							dataType: "json",
-							success: function (data, textStatus, jqXHR) {
-								
-							}
-						});
-					})
-				)
-			)
+		var $participants = $("<table border='1'><thead><th>Team</th><th>Shares</th><th>Operations</th></thead></table>");
+
+		$.getJSON("chops/participants", {chopID: chop.chopID}, function (data, textStatus, jqXHR) {
+			$.each(data, function (index, value) {
+				$participants.append($("<tr></tr>")
+					.append($("<td></td>").text(teams[value.teamID]))
+					.append($("<td></td>").text(value.shares))
+					.append($("<td></td>")
+						.append($("<button>Edit</button>"))
+						.append($("<button>Delete</button>"))
+					)
+				);
+			});
+		});
+
+		$("#chops").append($("<div></div>")
+			.addClass("chop")
+			.text(chop.description + " started " + chop.started)
+			.append($participants)
+			.append($("<button>Add Participant</button>"))
+			.append($("<button>Close Chop</button>"))
 		);
 	}
 
