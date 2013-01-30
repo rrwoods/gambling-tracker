@@ -31,7 +31,7 @@
 	}
 
 	function addPool(pool) {
-		$("#poolRows").append($("<tr></tr>")
+		$("#pools").append($("<tr></tr>")
 			.append($("<td></td>").text(teams[pool.teamID]))
 			.append($("<td></td>").text(pool.description))
 			.append($("<td></td>").text(pool.balance))
@@ -117,7 +117,7 @@
 				);
 			;
 
-			$("#teamRows").append($("<tr></tr>")
+			$("#teams").append($("<tr></tr>")
 				.append($nameCell)
 				.append($operationsCell)
 			);
