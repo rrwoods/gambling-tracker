@@ -58,6 +58,22 @@ def initializeDatabase(connection):
 	# If the tables weren't created just now, vaccum to keep them optimized
 	connection.execute("VACUUM")
 
+@bottle.route("/chops/participants")
+def participants():
+	chopID = queryParameter("chopID")
+	rows = connection.execute("""
+		SELECT
+			teamID,
+			shares
+		FROM chopParticipants
+		WHERE chopID = ?
+		ORDER BY teamID ASC
+	""", (chopID, ))
+	return json.dumps([{
+		"teamID": int(row[0]),
+		"shares": int(row[1])
+	} for row in rows])
+
 @bottle.route("/pools")
 def pools():
 	rows = connection.execute("""
