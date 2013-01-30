@@ -32,10 +32,10 @@
 
 	function addPool(pool) {
 		$("#poolRows").append($("<tr></tr>")
-			.append($("<td></td>").text(pool.poolID))
 			.append($("<td></td>").text(teams[pool.teamID]))
 			.append($("<td></td>").text(pool.description))
 			.append($("<td></td>").text(pool.balance))
+			.append($("<td></td>"))
 		);
 	}
 
@@ -88,11 +88,10 @@
 		});
 
 		$("#addTeamButton").click(function () {
-			var $IDCell, $input, $nameCell, $operationsCell;
+			var $input, $nameCell, $operationsCell;
 
 			$input = $("<input>");
 
-			$IDCell = $("<td></td>").text("Auto");
 			$nameCell = $("<td></td>").append($input);
 			$operationsCell = $("<td></td>")
 				.append($("<button>Save</button>")
@@ -107,7 +106,6 @@
 							success: function (data, textStatus, jqXHR) {
 								teams[data.teamID] = data.name;
 
-								$IDCell.text(data.teamID);
 								$nameCell.text(data.name);
 								$operationsCell.empty();
 
@@ -117,9 +115,9 @@
 						});
 					})
 				);
+			;
 
 			$("#teamRows").append($("<tr></tr>")
-				.append($IDCell)
 				.append($nameCell)
 				.append($operationsCell)
 			);
