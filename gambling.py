@@ -26,6 +26,10 @@ def chops():
 		"started": str(row[2])
 	} for row in rows])
 
+@bottle.route("/css/<filename:path>")
+def css(filename):
+	return bottle.static_file(filename, root = "css/")
+
 # Anytime we have an error caused by us, not by the client
 @bottle.error(500)
 def error(exception):
@@ -49,7 +53,7 @@ def formParameter(name):
 
 @bottle.route("/")
 def index():
-	return bottle.static_file("index.html", root = "static/")
+	return bottle.static_file("index.html", root = ".")
 
 def initializeDatabase(connection):
 	with open(SQLITE3_SCHEMA, "r") as schema_file:
@@ -57,6 +61,10 @@ def initializeDatabase(connection):
 	connection.commit()
 	# If the tables weren't created just now, vaccum to keep them optimized
 	connection.execute("VACUUM")
+
+@bottle.route("/js/<filename:path>")
+def js(filename):
+	return bottle.static_file(filename, root = "js/")
 
 @bottle.route("/chops/participants")
 def participants():
@@ -106,10 +114,6 @@ def queryParameter(name):
 		# parameter
 		return getattr(bottle.request.query, name)
 	raise bottle.HTTPResponse(status = 400, body = "Expected query parameter " + name)
-
-@bottle.route("/static/<filename:path>")
-def static(filename):
-	return bottle.static_file(filename, root = "static/")
 
 @bottle.route("/teams")
 def teams():
