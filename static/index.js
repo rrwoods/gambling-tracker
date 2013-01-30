@@ -48,43 +48,27 @@
 	});
 
 	$(document).ready(function () {
-		$.ajax({
-			url: "chops",
-			type: "GET",
-			dataType: "json",
-			success: function (data, textStatus, jqXHR) {
-				$.each(data, function (index, value) {
-					addChop(value);
-				});
-			}
+		$.getJSON("teams", {}, function (data, textStatus, jqXHR) {
+			$.each(data, function (index, value) {
+				teams[value.teamID] = value.name;
+
+				$("#teams").append($("<tr></tr>")
+					.append($("<td></td>").text(value.name))
+					.append($("<td></td>"))
+				);
+			});
 		});
 
-		$.ajax({
-			url: "teams",
-			type: "GET",
-			dataType: "json",
-			success: function (data, textStatus, jqXHR) {
-				$.each(data, function (index, value) {
-					teams[value.teamID] = value.name;
-
-					$("#teamRows").append($("<tr></tr>")
-						.append($("<td></td>").text(value.teamID))
-						.append($("<td></td>").text(value.name))
-						.append($("<td></td>"))
-					);
-				});
-			}
+		$.getJSON("chops", {}, function (data, textStatus, jqXHR) {
+			$.each(data, function (index, value) {
+				addChop(value);
+			});
 		});
 
-		$.ajax({
-			url: "pools",
-			type: "GET",
-			dataType: "json",
-			success: function (data, textStatus, jqXHR) {
-				$.each(data, function (index, value) {
-					addPool(value);
-				});
-			}
+		$.getJSON("pools", {}, function (data, textStatus, jqXHR) {
+			$.each(data, function (index, value) {
+				addPool(value);
+			});
 		});
 
 		$("#addTeamButton").click(function () {
@@ -96,25 +80,17 @@
 			$operationsCell = $("<td></td>")
 				.append($("<button>Save</button>")
 					.click(function () {
-						$.ajax({
-							url: "teams/add",
-							type: "POST",
-							data: {
-								name: $input.val()
-							},
-							dataType: "json",
-							success: function (data, textStatus, jqXHR) {
-								teams[data.teamID] = data.name;
+						$.post("teams/add", {name: $input.val()}, function (data, textStatus, jqXHR) {
+							teams[data.teamID] = data.name;
 
-								$nameCell.text(data.name);
-								$operationsCell.empty();
+							$nameCell.text(data.name);
+							$operationsCell.empty();
 
-								addChop(data.defaultChop);
-								addPool(data.triprollPool);
-							}
-						});
+							addChop(data.defaultChop);
+							addPool(data.triprollPool);
+						}, "json");
 					})
-				);
+				)
 			;
 
 			$("#teams").append($("<tr></tr>")
@@ -124,23 +100,15 @@
 		});
 
 		$("#executeSQLButton").click(function () {
-			$.ajax({
-				url: "execute",
-				type: "POST",
-				data: {
-					statement: $("#executeSQLInput").val()
-				},
-				dataType: "json",
-				success: function (data, textStatus, jqXHR) {
-					$("#executeSQLTable").empty().append($.map(data, function (value, index) {
-						return $("<tr></tr>")
-							.append($.map(value, function (innerValue, innerIndex) {
-								return $("<td></td>").text(innerValue);
-							}))
-						;
-					}));
-				}
-			});
+			$.post("execute", {statement: $("#executeSQLInput").val()}, function (data, textStatus, jqXHR) {
+				$("#executeSQLTable").empty().append($.map(data, function (value, index) {
+					return $("<tr></tr>")
+						.append($.map(value, function (innerValue, innerIndex) {
+							return $("<td></td>").text(innerValue);
+						}))
+					;
+				}));
+			}, "json");
 		});
 	});
 }(jQuery, document));
