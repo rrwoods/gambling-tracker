@@ -1,12 +1,14 @@
 (function ($, document) {
 	"use strict";
 
-	var teams;
+	var $chopsRow, chopsCount, chopWidth, teams;
 
+	chopsCount = 0;
+	chopWidth = 4;
 	teams = {};
 
 	function addChop(chop) {
-		var $participants = $("<table border='1'><thead><th>Team</th><th>Shares</th><th>Operations</th></thead></table>");
+		var $participants = $("<table border='1' class='table table-bordered table-condensed table-hover'><thead><th>Team</th><th>Shares</th><th>Operations</th></thead></table>");
 
 		$.getJSON("chops/participants", {chopID: chop.chopID}, function (data, textStatus, jqXHR) {
 			$.each(data, function (index, value) {
@@ -14,20 +16,29 @@
 					.append($("<td></td>").text(teams[value.teamID]))
 					.append($("<td></td>").text(value.shares))
 					.append($("<td></td>")
-						.append($("<button>Edit</button>"))
-						.append($("<button>Delete</button>"))
+						.append($("<button class='btn'>Edit</button>"))
+						.append($("<button class='btn'>Delete</button>"))
 					)
 				);
 			});
 		});
 
-		$("#chops").append($("<div></div>")
+		// Each row can hold only 12 columns
+		if (0 == chopsCount % (12 / chopWidth)) {
+			$chopsRow = $("<div class='chops-row row-fluid'></div>");
+			$("#chops").append($chopsRow);
+		}
+
+		$chopsRow.append($("<div></div>")
 			.addClass("chop")
-			.text(chop.description + " started " + chop.started)
+			.addClass("span" + chopWidth)
+			.append($("<p></p>").text(chop.description + " started " + chop.started))
 			.append($participants)
-			.append($("<button>Add Participant</button>"))
-			.append($("<button>Close Chop</button>"))
+			.append($("<button class='btn'>Add Participant</button>"))
+			.append($("<button class='btn'>Close Chop</button>"))
 		);
+
+		chopsCount++;
 	}
 
 	function addPool(pool) {
@@ -39,15 +50,7 @@
 		);
 	}
 
-	$(document).ajaxError(function (event, jqXHR, ajaxSettings, thrownError) {
-		console.error("AJAX error with status " + jqXHR.status + ": \"" + jqXHR.statusText + "\"");
-		if(jqXHR.hasOwnProperty("responseText")) {
-			console.error("Response text is \"" + jqXHR.responseText + "\"");
-		}
-		alert("AJAX error; see console for more details");
-	});
-
-	$(document).ready(function () {
+	function loadData() {
 		$.getJSON("teams", {}, function (data, textStatus, jqXHR) {
 			$.each(data, function (index, value) {
 				teams[value.teamID] = value.name;
@@ -70,6 +73,22 @@
 				addPool(value);
 			});
 		});
+
+		$("body").append($("<div id='dataLoaded'></div>"));
+	}
+
+	$(document).ajaxError(function (event, jqXHR, ajaxSettings, thrownError) {
+		console.error("AJAX error with status " + jqXHR.status + ": \"" + jqXHR.statusText + "\"");
+		if(jqXHR.hasOwnProperty("responseText")) {
+			console.error("Response text is \"" + jqXHR.responseText + "\"");
+		}
+		alert("AJAX error; see console for more details");
+	});
+
+	$(document).ready(function () {
+		if (0 === $("#dataLoaded").length) {
+			loadData();
+		}
 
 		$("#addTeamButton").click(function () {
 			var $input, $nameCell, $operationsCell;
