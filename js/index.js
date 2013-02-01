@@ -30,7 +30,7 @@
 		}
 
 		$chopsRow.append($("<div></div>")
-			.addClass("chop")
+			.addClass("well")
 			.addClass("span" + chopWidth)
 			.append($("<p class='lead'></p>").text(chop.description))
 			.append($("<p></p>").text("Started " + chop.started))
