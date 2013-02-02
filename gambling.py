@@ -108,6 +108,58 @@ def pools():
 		"balance": float(row[3])
 	} for row in rows])
 
+@bottle.route("/pools/add", method = "POST")
+def poolsAdd():
+	teamID = int(formParameter("teamID"))
+	description = formParameter("description")
+
+	cursor = connection.cursor()
+
+	cursor.execute("""
+		INSERT INTO pools(teamID, description)
+		VALUES (?, ?)
+	""", (teamID, description))
+	poolID = cursor.lastrowid
+
+	connection.commit()
+
+	return {
+		"poolID": poolID,
+		"teamID": teamID,
+		"description": description,
+		"balance": 0
+	}
+
+@bottle.route("/pools/edit", method = "POST")
+def poolsEdit():
+	poolID = int(formParameter("poolID"))
+	description = formParameter("description")
+
+	cursor = connection.cursor()
+
+	cursor.execute("""
+		UPDATE pools
+		SET description = ?
+		WHERE poolID = ?
+	""", (description, poolID))
+
+	connection.commit()
+
+	rows = cursor.execute("""
+		SELECT teamID
+		FROM pools
+		WHERE poolID = ?
+	""", (poolID, ))
+
+	for row in rows:
+		teamID = int(row[0])
+
+	return {
+		"poolID": poolID,
+		"teamID": teamID,
+		"description": description
+	}
+
 def queryParameter(name):
 	if name in bottle.request.query:
 		# Use getattr to take advantage of Bottle automatically decoding the
@@ -189,15 +241,12 @@ def teamsAdd():
 def teamsEdit():
 	teamID = int(formParameter("teamID"))
 	name = formParameter("name")
-
 	connection.execute("""
 		UPDATE teams
 		SET name = ?
 		WHERE teamID = ?
 	""", (name, teamID))
-
 	connection.commit()
-
 	return {
 		"teamID": teamID,
 		"name": name
