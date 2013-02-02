@@ -1,11 +1,10 @@
 (function ($, document) {
 	"use strict";
 
-	var $chopsRow, chopsCount, chopWidth, teams;
+	var $chopsRow, chopsCount, chopWidth;
 
 	chopsCount = 0;
 	chopWidth = 4;
-	teams = {};
 
 	function addChop(chop) {
 		var $participants = $("<table border='1' class='table table-bordered table-condensed table-hover'><thead><th>Team</th><th>Shares</th><th>Operations</th></thead></table>");
@@ -13,7 +12,7 @@
 		$.getJSON("chops/participants", {chopID: chop.chopID}, function (data, textStatus, jqXHR) {
 			$.each(data, function (index, value) {
 				$participants.append($("<tr></tr>")
-					.append($("<td></td>").text(teams[value.teamID]))
+					.append($("<td></td>").addClass("team" + value.teamID))
 					.append($("<td></td>").text(value.shares))
 					.append($("<td></td>")
 						.append($("<button class='btn'>Edit</button>"))
@@ -44,7 +43,7 @@
 
 	function addPool(pool) {
 		$("#pools").append($("<tr></tr>")
-			.append($("<td></td>").text(teams[pool.teamID]))
+			.append($("<td></td>").addClass("team" + pool.teamID))
 			.append($("<td></td>").text(pool.description))
 			.append($("<td></td>").text(pool.balance))
 			.append($("<td></td>"))
@@ -52,17 +51,6 @@
 	}
 
 	function loadData() {
-		$.getJSON("teams", {}, function (data, textStatus, jqXHR) {
-			$.each(data, function (index, value) {
-				teams[value.teamID] = value.name;
-
-				$("#teams").append($("<tr></tr>")
-					.append($("<td></td>").text(value.name))
-					.append($("<td></td>"))
-				);
-			});
-		});
-
 		$.getJSON("chops", {}, function (data, textStatus, jqXHR) {
 			$.each(data, function (index, value) {
 				addChop(value);
@@ -75,7 +63,47 @@
 			});
 		});
 
+		$.getJSON("teams", {}, function (data, textStatus, jqXHR) {
+			$.each(data, function (index, value) {
+				var $nameCell, $operationsCell;
+
+				$nameCell = $("<td></td>");
+				$operationsCell = $("<td></td>");
+
+				setTeam(value, $nameCell, $operationsCell);
+
+				$("#teams").append($("<tr></tr>")
+					.append($nameCell)
+					.append($operationsCell)
+				);
+			});
+		});
+
 		$("body").append($("<div id='dataLoaded'></div>"));
+	}
+
+	function setTeam(team, $nameCell, $operationsCell) {
+		$(".team" + team.teamID).text(team.name);
+
+		$nameCell.empty();
+		$nameCell.text(team.name);
+		$operationsCell.empty();
+		$operationsCell.append($("<button>Edit</button>")
+			.click(function () {
+				var $input = $("<input>").val(team.name);
+
+				$nameCell.empty();
+				$nameCell.append($input);
+				$operationsCell.empty();
+				$operationsCell.append($("<button>Save</button>")
+					.click(function () {
+						$.post("teams/edit", {teamID: team.teamID, name: $input.val()}, function (data, textStatus, jqXHR) {
+							setTeam(data, $nameCell, $operationsCell);
+						}, "json");
+					})
+				);
+			})
+		);
 	}
 
 	$(document).ajaxError(function (event, jqXHR, ajaxSettings, thrownError) {
@@ -101,11 +129,7 @@
 				.append($("<button>Save</button>")
 					.click(function () {
 						$.post("teams/add", {name: $input.val()}, function (data, textStatus, jqXHR) {
-							teams[data.teamID] = data.name;
-
-							$nameCell.text(data.name);
-							$operationsCell.empty();
-
+							setTeam(data, $nameCell, $operationsCell);
 							addChop(data.defaultChop);
 							addPool(data.triprollPool);
 						}, "json");
