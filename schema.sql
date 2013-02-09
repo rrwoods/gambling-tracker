@@ -61,3 +61,34 @@ CREATE TABLE IF NOT EXISTS entryInfo
 	typeID  INTEGER NOT NULL REFERENCES infoTypes(typeID),
 	data    INTEGER NOT NULL
 );
+
+-- Entry information tables and dependencies
+
+CREATE TABLE IF NOT EXISTS expenseTypes
+(
+	expenseTypeID INTEGER      NOT NULL PRIMARY KEY AUTOINCREMENT,
+	name          VARCHAR(256) NOT NULL,
+	taxDeductible INTEGER      NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS games
+(
+	gameID        INTEGER      NOT NULL PRIMARY KEY AUTOINCREMENT,
+	name          VARCHAR(256) NOT NULL,
+	perRoundEV    DOUBLE       NOT NULL,
+	perRoundHands DOUBLE       NOT NULL,
+	perRoundSD    DOUBLE       NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS regions
+(
+	regionID INTEGER      NOT NULL PRIMARY KEY AUTOINCREMENT,
+	name     VARCHAR(256) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS venues
+(
+	venueID  INTEGER      NOT NULL PRIMARY KEY AUTOINCREMENT,
+	regionID INTEGER      NOT NULL REFERENCES regions(regionID),
+	name     VARCHAR(256) NOT NULL
+);

@@ -32,3 +32,84 @@ Actuals for chop OKCGO (chop 13) (sum chop results and divide according to share
  - TwoSigmasDown: $22393.80
  - David:         $22393.80
  - RWM:            $4976.40
+
+chops:
+ID,description
+1,OKC chop promo
+2,2SD default
+3,Dave default
+4,RWM default
+
+infoTypes:
+ID,name
+1,expense
+2,venue
+3,game
+4,betPerHand
+5,roundsPerHour
+6,minutesPlayed
+
+pools:
+ID,team,description
+1,1,2SD triproll
+2,2,Dave triproll
+3,3,RWM triproll
+4,1,2SD credit card
+
+teams:
+ID,desc,triprollPoolID,defaultChopID
+1,2SD,1,2
+2,Dave,2,3
+3,RWM,3,4
+
+entries:
+entryID,fromPoolID,intoPoolID,description,amount,chopID
+1,4,null,plane ticket,236,1
+2,null,1,session,100000,1
+3,null,2,session,-50000,1
+
+chopParticipants:
+chopID,teamID,shares
+1,1,45
+1,2,45
+1,3,10
+2,1,1
+3,2,1
+4,3,1
+
+entryInfo:
+entryID,infoID,data
+1,1,1
+2,2,4
+2,3,1
+2,4,300
+2,5,60
+2,6,300
+3,2,4
+3,3,1
+3,4,300
+3,5,60
+3,6,300
+
+expenseTypes:
+expenseTypeID,name,taxDeductible
+1,airfare,1
+
+games:
+gameID,name,perRoundEV,perRoundHands,perRoundSD
+1,BJ 2:1,3,0.048,2.615339
+2,BJ 2:1,5,0.08,4.024922
+
+regions:
+regionID,name
+1,Nevada
+2,New Jersey
+3,United Kingdom
+4,Oklahoma
+
+venues:
+venueID,regionID,name
+1,1,Venetian
+2,1,Ceaser's Palace
+3,2,Ceaser's Atlantic City
+4,4,First Council
