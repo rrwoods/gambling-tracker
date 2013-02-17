@@ -26,6 +26,35 @@ def chops():
 		"started": str(row[2])
 	} for row in rows])
 
+@bottle.route("/chops/add", method = "POST")
+def chopsAdd():
+	description = formParameter("description")
+
+	cursor = connection.cursor()
+
+	cursor.execute("""
+		INSERT INTO chops(description)
+		VALUES (?)
+	""", (description, ))
+	chopID = cursor.lastrowid
+
+	rows = cursor.execute("""
+		SELECT started
+		FROM chops
+		WHERE chopID = (?)
+	""", (chopID, ))
+
+	for row in rows:
+		started = str(row[0])
+
+	connection.commit()
+
+	return {
+		"chopID": chopID,
+		"description": description,
+		"started": started
+	}
+
 @bottle.route("/css/<filename:path>")
 def css(filename):
 	return bottle.static_file(filename, root = "css/")

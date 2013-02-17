@@ -164,6 +164,35 @@
 			}
 		});
 
+		$("#addChopButton").click(function () {
+			var $chop, $input;
+
+			$input = $("<input></input>");
+			$chop = $("<div></div>")
+				.addClass("well")
+				.addClass("span" + chopWidth)
+				.append($("<p></p>")
+					.append($input)
+				).append($("<button class='btn'>Save</button>")
+					.click(function () {
+						$.post("chops/add", {description: $input.val()}, function (data, textStatus, jqXHR) {
+							$chop.remove();
+							$(document).trigger("gambling:addChop", data);
+						}, "json");
+					})
+				)
+			;
+
+			// Each row can hold only 12 columns
+			if (0 === chopsCount % (12 / chopWidth)) {
+				$chopsRow = $("<div class='chops-row row-fluid'></div>");
+				$("#chops").append($chopsRow);
+			}
+
+			$chopsRow.append($chop);
+			chopsCount += 1;
+		});
+
 		$("#addPoolButton").click(function () {
 			var $descriptionInput, $poolRow, $teamInput;
 
@@ -192,7 +221,7 @@
 					.append($descriptionInput)
 				).append($("<td>0</td>"))
 				.append($("<td></td>")
-				.append($("<button>Save</button>")
+					.append($("<button>Save</button>")
 						.click(function () {
 							$.post("pools/add", {teamID: $teamInput.val(), description: $descriptionInput.val()}, function (data, textStatus, jqXHR) {
 								$poolRow.remove();
