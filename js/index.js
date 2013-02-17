@@ -89,7 +89,25 @@
 		}
 
 		$(document).on("gambling:addChop", function (event, chop) {
-			var $participants = $("<table border='1' class='table table-bordered table-condensed table-hover'><thead><th>Team</th><th>Shares</th><th>Operations</th></thead></table>");
+			var $chop, $participants;
+
+			$participants = $("<table border='1' class='table table-bordered table-condensed table-hover'><thead><th>Team</th><th>Shares</th><th>Operations</th></thead></table>");
+			$chop = $("<div></div>")
+				.addClass("well")
+				.addClass("span" + chopWidth)
+				.append($("<p class='lead'></p>").text(chop.description))
+				.append($("<p></p>").text("Started " + chop.started))
+				.append($participants)
+				.append($("<button class='btn'>Add Participant</button>"))
+				.append($("<button class='btn'>Close Chop</button>")
+					.click(function () {
+						$.post("chops/close", {chopID: chop.chopID}, function (data, textStatus, jqXHR) {
+							$chop.remove();
+							chopsCount -= 1;
+						}, "json");
+					})
+				)
+			;
 
 			$.getJSON("chops/participants", {chopID: chop.chopID}, function (data, textStatus, jqXHR) {
 				$.each(data, function (index, value) {
@@ -112,16 +130,7 @@
 				$("#chops").append($chopsRow);
 			}
 
-			$chopsRow.append($("<div></div>")
-				.addClass("well")
-				.addClass("span" + chopWidth)
-				.append($("<p class='lead'></p>").text(chop.description))
-				.append($("<p></p>").text("Started " + chop.started))
-				.append($participants)
-				.append($("<button class='btn'>Add Participant</button>"))
-				.append($("<button class='btn'>Close Chop</button>"))
-			);
-
+			$chopsRow.append($chop);
 			chopsCount += 1;
 		});
 

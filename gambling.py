@@ -55,6 +55,25 @@ def chopsAdd():
 		"started": started
 	}
 
+@bottle.route("/chops/close", method = "POST")
+def chopsClose():
+	chopID = int(formParameter("chopID"))
+
+	cursor = connection.cursor()
+
+	cursor.execute("""
+		UPDATE chops
+		SET ended = datetime('now')
+		WHERE chopID = (?)
+	""", (chopID, ))
+	chopID = cursor.lastrowid
+
+	connection.commit()
+
+	return {
+		"chopID": chopID
+	}
+
 @bottle.route("/css/<filename:path>")
 def css(filename):
 	return bottle.static_file(filename, root = "css/")
