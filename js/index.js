@@ -7,70 +7,16 @@
 	chopWidth = 4;
 	teams = {};
 
-	function addChop(chop) {
-		var $participants = $("<table border='1' class='table table-bordered table-condensed table-hover'><thead><th>Team</th><th>Shares</th><th>Operations</th></thead></table>");
-
-		$.getJSON("chops/participants", {chopID: chop.chopID}, function (data, textStatus, jqXHR) {
-			$.each(data, function (index, value) {
-				$participants.append($("<tr></tr>")
-					.append($("<td></td>")
-						.addClass("team" + value.teamID)
-						.text(teams[value.teamID])
-					).append($("<td></td>").text(value.shares))
-					.append($("<td></td>")
-						.append($("<button class='btn'>Edit</button>"))
-						.append($("<button class='btn'>Delete</button>"))
-					)
-				);
-			});
-		});
-
-		// Each row can hold only 12 columns
-		if (0 == chopsCount % (12 / chopWidth)) {
-			$chopsRow = $("<div class='chops-row row-fluid'></div>");
-			$("#chops").append($chopsRow);
-		}
-
-		$chopsRow.append($("<div></div>")
-			.addClass("well")
-			.addClass("span" + chopWidth)
-			.append($("<p class='lead'></p>").text(chop.description))
-			.append($("<p></p>").text("Started " + chop.started))
-			.append($participants)
-			.append($("<button class='btn'>Add Participant</button>"))
-			.append($("<button class='btn'>Close Chop</button>"))
-		);
-
-		chopsCount++;
-	}
-
-	function addPool(pool) {
-		var $descriptionCell, $operationsCell, $teamCell;
-
-		$teamCell = $("<td></td>").addClass("team" + pool.teamID);
-		$descriptionCell = $("<td></td>");
-		$operationsCell = $("<td></td>");
-
-		setPool(pool, $teamCell, $descriptionCell, $operationsCell);
-
-		$("#pools").append($("<tr></tr>")
-			.append($teamCell)
-			.append($descriptionCell)
-			.append($("<td></td>").text(pool.balance))
-			.append($operationsCell)
-		);
-	}
-
 	function loadData() {
 		$.getJSON("chops", {}, function (data, textStatus, jqXHR) {
 			$.each(data, function (index, value) {
-				addChop(value);
+				$(document).trigger("gambling:addChop", value);
 			});
 		});
 
 		$.getJSON("pools", {}, function (data, textStatus, jqXHR) {
 			$.each(data, function (index, value) {
-				addPool(value);
+				$(document).trigger("gambling:addPool", value);
 			});
 		});
 
@@ -155,6 +101,66 @@
 			loadData();
 		}
 
+		$(document).on("gambling:addChop", function (event, chop) {
+			var $participants = $("<table border='1' class='table table-bordered table-condensed table-hover'><thead><th>Team</th><th>Shares</th><th>Operations</th></thead></table>");
+
+			$.getJSON("chops/participants", {chopID: chop.chopID}, function (data, textStatus, jqXHR) {
+				$.each(data, function (index, value) {
+					$participants.append($("<tr></tr>")
+						.append($("<td></td>")
+							.addClass("team" + value.teamID)
+							.text(teams[value.teamID])
+						).append($("<td></td>").text(value.shares))
+						.append($("<td></td>")
+							.append($("<button class='btn'>Edit</button>"))
+							.append($("<button class='btn'>Delete</button>"))
+						)
+					);
+				});
+			});
+
+			// Each row can hold only 12 columns
+			if (0 == chopsCount % (12 / chopWidth)) {
+				$chopsRow = $("<div class='chops-row row-fluid'></div>");
+				$("#chops").append($chopsRow);
+			}
+
+			$chopsRow.append($("<div></div>")
+				.addClass("well")
+				.addClass("span" + chopWidth)
+				.append($("<p class='lead'></p>").text(chop.description))
+				.append($("<p></p>").text("Started " + chop.started))
+				.append($participants)
+				.append($("<button class='btn'>Add Participant</button>"))
+				.append($("<button class='btn'>Close Chop</button>"))
+			);
+
+			chopsCount++;
+		});
+
+		$(document).on("gambling:addPool", function (event, pool) {
+			var $descriptionCell, $operationsCell, $teamCell;
+
+			$teamCell = $("<td></td>").addClass("team" + pool.teamID);
+			$descriptionCell = $("<td></td>");
+			$operationsCell = $("<td></td>");
+
+			setPool(pool, $teamCell, $descriptionCell, $operationsCell);
+
+			$("#pools").append($("<tr></tr>")
+				.append($teamCell)
+				.append($descriptionCell)
+				.append($("<td></td>").text(pool.balance))
+				.append($operationsCell)
+			);
+		});
+
+
+		$(document).on("gambling:addTeam", function (event, team) {
+			$(document).trigger("gambling:addChop", team.defaultChop);
+			$(document).trigger("gambling:addPool", team.triprollPool);
+		});
+
 		$("#addPoolButton").click(function () {
 			var $descriptionCell, $descriptionInput, $operationsCell, $teamCell, $teamInput;
 
@@ -165,6 +171,14 @@
 					.addClass("team" + index)
 					.text(value)
 					.val(index)
+				);
+			});
+
+			$(document).on("gambling:addTeam", function (event, team) {
+				$teamInput.append($("<option></option>")
+					.addClass("team" + team.teamID)
+					.text(team.name)
+					.val(team.teamID)
 				);
 			});
 
@@ -199,8 +213,7 @@
 					.click(function () {
 						$.post("teams/add", {name: $input.val()}, function (data, textStatus, jqXHR) {
 							setTeam(data, $nameCell, $operationsCell);
-							addChop(data.defaultChop);
-							addPool(data.triprollPool);
+							$(document).trigger("gambling:addTeam", data);
 						}, "json");
 					})
 				)
