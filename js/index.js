@@ -14,14 +14,14 @@
 		$descriptionCell.empty();
 		$descriptionCell.text(pool.description);
 		$operationsCell.empty();
-		$operationsCell.append($("<button>Edit</button>")
+		$operationsCell.append($("<button class='btn'>Edit</button>")
 			.click(function () {
 				var $input = $("<input>").val(pool.description);
 
 				$descriptionCell.empty();
 				$descriptionCell.append($input);
 				$operationsCell.empty();
-				$operationsCell.append($("<button>Save</button>")
+				$operationsCell.append($("<button class='btn'>Save</button>")
 					.click(function () {
 						$.post("pools/edit", {poolID: pool.poolID, description: $input.val()}, function (data, textStatus, jqXHR) {
 							setPool(data, $teamCell, $descriptionCell, $operationsCell);
@@ -39,14 +39,14 @@
 		$nameCell.empty();
 		$nameCell.text(team.name);
 		$operationsCell.empty();
-		$operationsCell.append($("<button>Edit</button>")
+		$operationsCell.append($("<button class='btn'>Edit</button>")
 			.click(function () {
 				var $input = $("<input>").val(team.name);
 
 				$nameCell.empty();
 				$nameCell.append($input);
 				$operationsCell.empty();
-				$operationsCell.append($("<button>Save</button>")
+				$operationsCell.append($("<button class='btn'>Save</button>")
 					.click(function () {
 						$.post("teams/edit", {teamID: team.teamID, name: $input.val()}, function (data, textStatus, jqXHR) {
 							setTeam(data, $nameCell, $operationsCell);
@@ -221,7 +221,7 @@
 					.append($descriptionInput)
 				).append($("<td>0</td>"))
 				.append($("<td></td>")
-					.append($("<button>Save</button>")
+					.append($("<button class='btn'>Save</button>")
 						.click(function () {
 							$.post("pools/add", {teamID: $teamInput.val(), description: $descriptionInput.val()}, function (data, textStatus, jqXHR) {
 								$poolRow.remove();
@@ -243,7 +243,7 @@
 				.append($("<td></td>")
 					.append($input)
 				).append($("<td></td>")
-					.append($("<button>Save</button>")
+					.append($("<button class='btn'>Save</button>")
 						.click(function () {
 							$.post("teams/add", {name: $input.val()}, function (data, textStatus, jqXHR) {
 								$teamRow.remove();
