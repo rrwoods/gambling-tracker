@@ -7,38 +7,6 @@
 	chopWidth = 4;
 	teams = {};
 
-	function loadData() {
-		$.getJSON("chops", {}, function (data, textStatus, jqXHR) {
-			$.each(data, function (index, value) {
-				$(document).trigger("gambling:addChop", value);
-			});
-		});
-
-		$.getJSON("pools", {}, function (data, textStatus, jqXHR) {
-			$.each(data, function (index, value) {
-				$(document).trigger("gambling:addPool", value);
-			});
-		});
-
-		$.getJSON("teams", {}, function (data, textStatus, jqXHR) {
-			$.each(data, function (index, value) {
-				var $nameCell, $operationsCell;
-
-				$nameCell = $("<td></td>");
-				$operationsCell = $("<td></td>");
-
-				setTeam(value, $nameCell, $operationsCell);
-
-				$("#teams").append($("<tr></tr>")
-					.append($nameCell)
-					.append($operationsCell)
-				);
-			});
-		});
-
-		$("body").append($("<div id='dataLoaded'></div>"));
-	}
-
 	function setPool(pool, $teamCell, $descriptionCell, $operationsCell) {
 		$teamCell.empty();
 		$teamCell.text(teams[pool.teamID]);
@@ -98,7 +66,25 @@
 
 	$(document).ready(function () {
 		if (0 === $("#dataLoaded").length) {
-			loadData();
+			$.getJSON("chops", {}, function (data, textStatus, jqXHR) {
+				$.each(data, function (index, value) {
+					$(document).trigger("gambling:addChop", value);
+				});
+			});
+
+			$.getJSON("pools", {}, function (data, textStatus, jqXHR) {
+				$.each(data, function (index, value) {
+					$(document).trigger("gambling:addPool", value);
+				});
+			});
+
+			$.getJSON("teams", {}, function (data, textStatus, jqXHR) {
+				$.each(data, function (index, value) {
+					$(document).trigger("gambling:addTeam", value);
+				});
+			});
+
+			$("body").append($("<div id='dataLoaded'></div>"));
 		}
 
 		$(document).on("gambling:addChop", function (event, chop) {
@@ -157,12 +143,28 @@
 
 
 		$(document).on("gambling:addTeam", function (event, team) {
-			$(document).trigger("gambling:addChop", team.defaultChop);
-			$(document).trigger("gambling:addPool", team.triprollPool);
+			var $nameCell, $operationsCell;
+
+			$nameCell = $("<td></td>");
+			$operationsCell = $("<td></td>");
+
+			setTeam(team, $nameCell, $operationsCell);
+
+			$("#teams").append($("<tr></tr>")
+				.append($nameCell)
+				.append($operationsCell)
+			);
+
+			if ("defaultChop" in team) {
+				$(document).trigger("gambling:addChop", team.defaultChop);
+			}
+			if ("triprollPool" in team) {
+				$(document).trigger("gambling:addPool", team.triprollPool);
+			}
 		});
 
 		$("#addPoolButton").click(function () {
-			var $descriptionCell, $descriptionInput, $operationsCell, $teamCell, $teamInput;
+			var $descriptionInput, $poolRow, $teamInput;
 
 			$descriptionInput = $("<input>");
 			$teamInput = $("<select></select>");
@@ -182,47 +184,47 @@
 				);
 			});
 
-			$teamCell = $("<td></td>").append($teamInput);
-			$descriptionCell = $("<td></td>").append($descriptionInput);
-			$operationsCell = $("<td></td>")
+			$poolRow = $("<tr></tr>")
+				.append($("<td></td>")
+					.append($teamInput)
+				).append($("<td></td>")
+					.append($descriptionInput)
+				).append($("<td>0</td>"))
+				.append($("<td></td>")
 				.append($("<button>Save</button>")
-					.click(function () {
-						$.post("pools/add", {teamID: $teamInput.val(), description: $descriptionInput.val()}, function (data, textStatus, jqXHR) {
-							setPool(data, $teamCell, $descriptionCell, $operationsCell);
-						}, "json");
-					})
+						.click(function () {
+							$.post("pools/add", {teamID: $teamInput.val(), description: $descriptionInput.val()}, function (data, textStatus, jqXHR) {
+								$poolRow.remove();
+								$(document).trigger("gambling:addPool", data);
+							}, "json");
+						})
+					)
 				)
 			;
 
-			$("#pools").append($("<tr></tr>")
-				.append($teamCell)
-				.append($descriptionCell)
-				.append($("<td>0</td>"))
-				.append($operationsCell)
-			);
+			$("#pools").append($poolRow);
 		});
 
 		$("#addTeamButton").click(function () {
-			var $input, $nameCell, $operationsCell;
+			var $input, $teamRow;
 
 			$input = $("<input>");
-
-			$nameCell = $("<td></td>").append($input);
-			$operationsCell = $("<td></td>")
-				.append($("<button>Save</button>")
-					.click(function () {
-						$.post("teams/add", {name: $input.val()}, function (data, textStatus, jqXHR) {
-							setTeam(data, $nameCell, $operationsCell);
-							$(document).trigger("gambling:addTeam", data);
-						}, "json");
-					})
+			$teamRow = $("<tr></tr>")
+				.append($("<td></td>")
+					.append($input)
+				).append($("<td></td>")
+					.append($("<button>Save</button>")
+						.click(function () {
+							$.post("teams/add", {name: $input.val()}, function (data, textStatus, jqXHR) {
+								$teamRow.remove();
+								$(document).trigger("gambling:addTeam", data);
+							}, "json");
+						})
+					)
 				)
 			;
 
-			$("#teams").append($("<tr></tr>")
-				.append($nameCell)
-				.append($operationsCell)
-			);
+			$("#teams").append($teamRow);
 		});
 
 		$("#executeSQLButton").click(function () {
