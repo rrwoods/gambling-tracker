@@ -1,4 +1,5 @@
-(function ($, document) {
+/*jslint white: true */
+(function ($, document, window) {
 	"use strict";
 
 	var $chopsRow, chopsCount, chopWidth, teams;
@@ -57,11 +58,11 @@
 	}
 
 	$(document).ajaxError(function (event, jqXHR, ajaxSettings, thrownError) {
-		console.error("AJAX error with status " + jqXHR.status + ": \"" + jqXHR.statusText + "\"");
+		window.console.error("AJAX error with status " + jqXHR.status + ": \"" + jqXHR.statusText + "\"");
 		if(jqXHR.hasOwnProperty("responseText")) {
-			console.error("Response text is \"" + jqXHR.responseText + "\"");
+			window.console.error("Response text is \"" + jqXHR.responseText + "\"");
 		}
-		alert("AJAX error; see console for more details");
+		window.alert("AJAX error; see console for more details");
 	});
 
 	$(document).ready(function () {
@@ -106,7 +107,7 @@
 			});
 
 			// Each row can hold only 12 columns
-			if (0 == chopsCount % (12 / chopWidth)) {
+			if (0 === chopsCount % (12 / chopWidth)) {
 				$chopsRow = $("<div class='chops-row row-fluid'></div>");
 				$("#chops").append($chopsRow);
 			}
@@ -121,7 +122,7 @@
 				.append($("<button class='btn'>Close Chop</button>"))
 			);
 
-			chopsCount++;
+			chopsCount += 1;
 		});
 
 		$(document).on("gambling:addPool", function (event, pool) {
@@ -155,10 +156,10 @@
 				.append($operationsCell)
 			);
 
-			if ("defaultChop" in team) {
+			if (team.hasOwnProperty("defaultChop")) {
 				$(document).trigger("gambling:addChop", team.defaultChop);
 			}
-			if ("triprollPool" in team) {
+			if (team.hasOwnProperty("triprollPool")) {
 				$(document).trigger("gambling:addPool", team.triprollPool);
 			}
 		});
@@ -239,4 +240,5 @@
 			}, "json");
 		});
 	});
-}(jQuery, document));
+/*global jQuery: false, document: false, window: false */
+}(jQuery, document, window));
