@@ -17,7 +17,13 @@ def chops():
 			description,
 			started
 		FROM chops
-		WHERE ended IS NULL
+		WHERE
+			ended IS NULL AND
+			chopID NOT IN
+			(
+				SELECT defaultChopID
+				FROM teams
+			)
 		ORDER BY chopID ASC
 	""")
 	return json.dumps([{
@@ -64,14 +70,22 @@ def chopsClose():
 	cursor.execute("""
 		UPDATE chops
 		SET ended = datetime('now')
-		WHERE chopID = (?)
+		WHERE
+			chopID = (?) AND
+			chopID NOT IN
+			(
+				SELECT defaultChopID
+				FROM teams
+			)
 	""", (chopID, ))
-	chopID = cursor.lastrowid
+	rows = cursor.rowcount
+	if 1 != rows:
+		raise bottle.HTTPResponse(status = 400, body = "Must specify the chopID of an existing non-default chop")
 
 	connection.commit()
 
 	return {
-		"chopID": chopID
+		"rows": rows
 	}
 
 @bottle.route("/css/<filename:path>")
