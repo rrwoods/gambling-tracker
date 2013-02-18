@@ -2,11 +2,24 @@
 (function ($, document, window) {
 	"use strict";
 
-	var $chopsRow, chopsCount, chopWidth, teams;
+	var chops, $chopsRow, chopWidth, teams;
 
-	chopsCount = 0;
+	chops = [];
 	chopWidth = 4;
 	teams = {};
+
+	function rebuildChops() {
+		var $chopsRow, i;
+
+		$("#chops").empty();
+		for (i = 0; i < chops.length; ++i) {
+			if (0 === i % (12 / chopWidth)) {
+				$chopsRow = $("<div class='chops-row row-fluid'></div>");
+				$("#chops").append($chopsRow);
+			}
+			$chopsRow.append(chops[i]);
+		}
+	}
 
 	function setPool(pool, $teamCell, $descriptionCell, $operationsCell) {
 		$teamCell.empty();
@@ -89,7 +102,7 @@
 		}
 
 		$(document).on("gambling:addChop", function (event, chop) {
-			var $chop, $participants;
+			var $chop, index, $participants;
 
 			$participants = $("<table border='1' class='table table-bordered table-condensed table-hover'><thead><th>Team</th><th>Shares</th><th>Operations</th></thead></table>");
 			$chop = $("<div></div>")
@@ -102,8 +115,8 @@
 				.append($("<button class='btn'>Close Chop</button>")
 					.click(function () {
 						$.post("chops/close", {chopID: chop.chopID}, function (data, textStatus, jqXHR) {
-							$chop.remove();
-							chopsCount -= 1;
+							chops.splice(index, 1);
+							rebuildChops();
 						}, "json");
 					})
 				)
@@ -124,14 +137,9 @@
 				});
 			});
 
-			// Each row can hold only 12 columns
-			if (0 === chopsCount % (12 / chopWidth)) {
-				$chopsRow = $("<div class='chops-row row-fluid'></div>");
-				$("#chops").append($chopsRow);
-			}
-
-			$chopsRow.append($chop);
-			chopsCount += 1;
+			index = chops.length;
+			chops.push($chop);
+			rebuildChops();
 		});
 
 		$(document).on("gambling:addPool", function (event, pool) {
@@ -174,7 +182,7 @@
 		});
 
 		$("#addChopButton").click(function () {
-			var $chop, $input;
+			var $chop, index, $input;
 
 			$input = $("<input></input>");
 			$chop = $("<div></div>")
@@ -185,21 +193,16 @@
 				).append($("<button class='btn'>Save</button>")
 					.click(function () {
 						$.post("chops/add", {description: $input.val()}, function (data, textStatus, jqXHR) {
-							$chop.remove();
+							chops.splice(index, 1);
 							$(document).trigger("gambling:addChop", data);
 						}, "json");
 					})
 				)
 			;
 
-			// Each row can hold only 12 columns
-			if (0 === chopsCount % (12 / chopWidth)) {
-				$chopsRow = $("<div class='chops-row row-fluid'></div>");
-				$("#chops").append($chopsRow);
-			}
-
-			$chopsRow.append($chop);
-			chopsCount += 1;
+			index = chops.length;
+			chops.push($chop);
+			rebuildChops();
 		});
 
 		$("#addPoolButton").click(function () {
