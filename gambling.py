@@ -88,6 +88,22 @@ def chopsClose():
 		"rows": rows
 	}
 
+@bottle.route("/chops/participants")
+def chopsParticipants():
+	chopID = queryParameter("chopID")
+	rows = connection.execute("""
+		SELECT
+			teamID,
+			shares
+		FROM chopParticipants
+		WHERE chopID = ?
+		ORDER BY teamID ASC
+	""", (chopID, ))
+	return json.dumps([{
+		"teamID": int(row[0]),
+		"shares": int(row[1])
+	} for row in rows])
+
 @bottle.route("/css/<filename:path>")
 def css(filename):
 	return bottle.static_file(filename, root = "css/")
@@ -127,22 +143,6 @@ def initializeDatabase(connection):
 @bottle.route("/js/<filename:path>")
 def js(filename):
 	return bottle.static_file(filename, root = "js/")
-
-@bottle.route("/chops/participants")
-def participants():
-	chopID = queryParameter("chopID")
-	rows = connection.execute("""
-		SELECT
-			teamID,
-			shares
-		FROM chopParticipants
-		WHERE chopID = ?
-		ORDER BY teamID ASC
-	""", (chopID, ))
-	return json.dumps([{
-		"teamID": int(row[0]),
-		"shares": int(row[1])
-	} for row in rows])
 
 @bottle.route("/pools")
 def pools():
