@@ -34,27 +34,21 @@ def chops():
 
 @bottle.route("/chops/add", method = "POST")
 def chopsAdd():
-	description = formParameter("description")
-
+	description = str(formParameter("description"))
 	cursor = connection.cursor()
-
 	cursor.execute("""
 		INSERT INTO chops(description)
 		VALUES (?)
 	""", (description, ))
 	chopID = cursor.lastrowid
-
+	connection.commit()
 	rows = cursor.execute("""
 		SELECT started
 		FROM chops
 		WHERE chopID = (?)
 	""", (chopID, ))
-
 	for row in rows:
 		started = str(row[0])
-
-	connection.commit()
-
 	return {
 		"chopID": chopID,
 		"description": description,
@@ -64,9 +58,7 @@ def chopsAdd():
 @bottle.route("/chops/close", method = "POST")
 def chopsClose():
 	chopID = int(formParameter("chopID"))
-
 	cursor = connection.cursor()
-
 	cursor.execute("""
 		UPDATE chops
 		SET ended = datetime('now')
@@ -78,19 +70,14 @@ def chopsClose():
 				FROM teams
 			)
 	""", (chopID, ))
-	rows = cursor.rowcount
-	if 1 != rows:
+	if 1 != cursor.rowcount:
 		raise bottle.HTTPResponse(status = 400, body = "Must specify the chopID of an existing non-default chop")
-
 	connection.commit()
-
-	return {
-		"rows": rows
-	}
+	return {}
 
 @bottle.route("/chops/participants")
 def chopsParticipants():
-	chopID = queryParameter("chopID")
+	chopID = int(queryParameter("chopID"))
 	rows = connection.execute("""
 		SELECT
 			teamID,
@@ -104,6 +91,38 @@ def chopsParticipants():
 		"shares": int(row[1])
 	} for row in rows])
 
+@bottle.route("/chops/participants/add", method = "POST")
+def chopsParticipantsAdd():
+	chopID = int(formParameter("chopID"))
+	teamID = int(formParameter("teamID"))
+	shares = int(formParameter("shares"))
+	connection.execute("""
+		INSERT INTO chopParticipants(chopID, teamID, shares)
+		VALUES (?, ?, ?)
+	""", (chopID, teamID, shares))
+	connection.commit()
+	return {
+		"chopID": chopID,
+		"teamID": teamID,
+		"shares": shares
+	}
+
+@bottle.route("/chops/participants/delete", method = "POST")
+def chopsParticipantsAdd():
+	chopID = int(formParameter("chopID"))
+	teamID = int(formParameter("teamID"))
+	cursor = connection.cursor()
+	cursor.execute("""
+		DELETE FROM chopParticipants
+		WHERE
+			chopID = ? AND
+			teamID = ?
+	""", (chopID, teamID))
+	if 1 != cursor.rowcount:
+		raise bottle.HTTPResponse(status = 400, body = "Must specify the chopID and teamID of an existing chop participant")
+	connection.commit()
+	return {}
+
 @bottle.route("/css/<filename:path>")
 def css(filename):
 	return bottle.static_file(filename, root = "css/")
@@ -116,7 +135,7 @@ def error(exception):
 
 @bottle.route("/execute", method = "POST")
 def execute():
-	statement = formParameter("statement")
+	statement = str(formParameter("statement"))
 	rows = connection.execute(statement)
 	# rows isn't a type the JSON library knows how to encode by default, but
 	# tuple is, so use it for output instead
@@ -173,18 +192,14 @@ def pools():
 @bottle.route("/pools/add", method = "POST")
 def poolsAdd():
 	teamID = int(formParameter("teamID"))
-	description = formParameter("description")
-
+	description = str(formParameter("description"))
 	cursor = connection.cursor()
-
 	cursor.execute("""
 		INSERT INTO pools(teamID, description)
 		VALUES (?, ?)
 	""", (teamID, description))
 	poolID = cursor.lastrowid
-
 	connection.commit()
-
 	return {
 		"poolID": poolID,
 		"teamID": teamID,
@@ -195,27 +210,21 @@ def poolsAdd():
 @bottle.route("/pools/edit", method = "POST")
 def poolsEdit():
 	poolID = int(formParameter("poolID"))
-	description = formParameter("description")
-
+	description = str(formParameter("description"))
 	cursor = connection.cursor()
-
 	cursor.execute("""
 		UPDATE pools
 		SET description = ?
 		WHERE poolID = ?
 	""", (description, poolID))
-
 	connection.commit()
-
 	rows = cursor.execute("""
 		SELECT teamID
 		FROM pools
 		WHERE poolID = ?
 	""", (poolID, ))
-
 	for row in rows:
 		teamID = int(row[0])
-
 	return {
 		"poolID": poolID,
 		"teamID": teamID,
@@ -245,7 +254,7 @@ def teams():
 
 @bottle.route("/teams/add", method = "POST")
 def teamsAdd():
-	name = formParameter("name")
+	name = str(formParameter("name"))
 
 	defaultChop = {"description": name + " default chop"}
 	triprollPool = {"description": name + " triproll", "balance": 0.0}
@@ -302,7 +311,7 @@ def teamsAdd():
 @bottle.route("/teams/edit", method = "POST")
 def teamsEdit():
 	teamID = int(formParameter("teamID"))
-	name = formParameter("name")
+	name = str(formParameter("name"))
 	connection.execute("""
 		UPDATE teams
 		SET name = ?
