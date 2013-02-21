@@ -63,7 +63,7 @@ def chopsClose():
 		UPDATE chops
 		SET ended = datetime('now')
 		WHERE
-			chopID = (?) AND
+			chopID = ? AND
 			chopID NOT IN
 			(
 				SELECT defaultChopID
@@ -74,6 +74,30 @@ def chopsClose():
 		raise bottle.HTTPResponse(status = 400, body = "Must specify the chopID of an existing non-default chop")
 	connection.commit()
 	return {}
+
+@bottle.route("/chops/edit", method = "POST")
+def chopsEdit():
+	chopID = int(formParameter("chopID"))
+	description = str(formParameter("description"))
+	cursor = connection.cursor()
+	cursor.execute("""
+		UPDATE chops
+		SET description = ?
+		WHERE
+			chopID = ? AND
+			chopID NOT IN
+			(
+				SELECT defaultChopID
+				FROM teams
+			)
+	""", (description, chopID))
+	if 1 != cursor.rowcount:
+		raise bottle.HTTPResponse(status = 400, body = "Must specify the chopID of an existing non-default chop")
+	connection.commit()
+	return {
+		"chopID": chopID,
+		"description": description
+	}
 
 @bottle.route("/chops/participants")
 def chopsParticipants():
@@ -108,7 +132,7 @@ def chopsParticipantsAdd():
 	}
 
 @bottle.route("/chops/participants/delete", method = "POST")
-def chopsParticipantsAdd():
+def chopsParticipantsDelete():
 	chopID = int(formParameter("chopID"))
 	teamID = int(formParameter("teamID"))
 	cursor = connection.cursor()

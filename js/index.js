@@ -9,12 +9,86 @@
 	teams = {};
 
 	function displayChop($chop) {
+		$chop.addClass("well");
+		$chop.addClass("span" + chopWidth);
 		if (0 === chopCount % (12 / chopWidth)) {
 			$chopsRow = $("<div class='row-fluid'></div>");
 			$("#chops").append($chopsRow);
 		}
 		$chopsRow.append($chop);
 		chopCount += 1;
+	}
+
+	function setChop(chop, $descriptionCell, $operationsCell) {
+		$descriptionCell.empty();
+		$descriptionCell.text(chop.description);
+		$operationsCell.empty();
+		$operationsCell.append($("<button class='btn'>Edit</button>")
+			.click(function () {
+				var $input = $("<input placeholder='Description' type='text'>").val(chop.description);
+
+				$descriptionCell.empty();
+				$descriptionCell.append($input);
+				$operationsCell.empty();
+				$operationsCell.append($("<button class='btn'>Save</button>")
+					.click(function () {
+						$.post("chops/edit", {chopID: chop.chopID, description: $input.val()}, function (data, textStatus, jqXHR) {
+							setChop(data, $descriptionCell, $operationsCell);
+						}, "json");
+					})
+				);
+			})
+		);
+		$operationsCell.append($("<button class='btn'>Add Participant</button>")
+			.click(function () {
+				var $participant, $sharesInput, $teamInput;
+
+				$sharesInput = $("<input class='input-mini' placeholder='Shares' type='number'></input>");
+				$teamInput = $("<select></select>");
+				$.each(teams, function (index, value) {
+					$teamInput.append($("<option></option>")
+						.addClass("team" + index)
+						.text(value)
+						.val(index)
+					);
+				});
+
+				$(document).on("gambling:addTeam", function (event, team) {
+					$teamInput.append($("<option></option>")
+						.addClass("team" + team.teamID)
+						.text(team.name)
+						.val(team.teamID)
+					);
+				});
+
+				$participant = $("<tr></tr>")
+					.append($("<td></td>")
+						.append($teamInput)
+					).append($("<td></td>")
+						.append($sharesInput)
+					).append($("<td></td>")
+					).append($("<td></td>")
+					).append($("<td></td>")
+						.append($("<button class='btn'>Save</button>")
+							.click(function () {
+								$.post("chops/participants/add", {chopID: chop.chopID, teamID: $teamInput.val(), shares: $sharesInput.val()}, function (data, textStatus, jqXHR) {
+									$participant.remove();
+									$(document).trigger("gambling:addChopParticipant", [chop.chopID, $participants, data]);
+								}, "json");
+							})
+						)
+					)
+				;
+				$participants.append($participant);
+			})
+		);
+		$operationsCell.append($("<button class='btn'>Close Chop</button>")
+			.click(function () {
+				$.post("chops/close", {chopID: chop.chopID}, function (data, textStatus, jqXHR) {
+					$chop.remove();
+				}, "json");
+			})
+		);
 	}
 
 	function setPool(pool, $teamCell, $descriptionCell, $operationsCell) {
@@ -98,63 +172,20 @@
 		}
 
 		$(document).on("gambling:addChop", function (event, chop) {
-			var $chop, $participants;
+			var $chop, $description, $operations, $participants;
 
-			$participants = $("<table border='1' class='table table-bordered table-condensed table-hover'><thead><th>Team</th><th>Shares</th><th>Operations</th></thead></table>");
+			$participants = $("<table border='1' class='table table-bordered table-condensed table-hover'><thead><th>Team</th><th>Shares</th><th>Result</th><th>Actual</th><th>Operations</th></thead></table>");
+			$description = $("<p class='lead'></p>");
+			$operations = $("<p></p>");
+
 			$chop = $("<div></div>")
-				.addClass("well")
-				.addClass("span" + chopWidth)
-				.append($("<p class='lead'></p>").text(chop.description))
+				.append($description)
 				.append($("<p></p>").text("Started " + chop.started))
 				.append($participants)
-				.append($("<button class='btn'>Add Participant</button>")
-					.click(function () {
-						var $participant, $sharesInput, $teamInput;
-
-						$sharesInput = $("<input class='input-mini' placeholder='Shares' type='number'></input>");
-						$teamInput = $("<select></select>");
-						$.each(teams, function (index, value) {
-							$teamInput.append($("<option></option>")
-								.addClass("team" + index)
-								.text(value)
-								.val(index)
-							);
-						});
-
-						$(document).on("gambling:addTeam", function (event, team) {
-							$teamInput.append($("<option></option>")
-								.addClass("team" + team.teamID)
-								.text(team.name)
-								.val(team.teamID)
-							);
-						});
-
-						$participant = $("<tr></tr>")
-							.append($("<td></td>")
-								.append($teamInput)
-							).append($("<td></td>")
-								.append($sharesInput)
-							).append($("<td></td>")
-								.append($("<button class='btn'>Save</button>")
-									.click(function () {
-										$.post("chops/participants/add", {chopID: chop.chopID, teamID: $teamInput.val(), shares: $sharesInput.val()}, function (data, textStatus, jqXHR) {
-											$participant.remove();
-											$(document).trigger("gambling:addChopParticipant", [chop.chopID, $participants, data]);
-										}, "json");
-									})
-								)
-							)
-						;
-						$participants.append($participant);
-					})
-				).append($("<button class='btn'>Close Chop</button>")
-					.click(function () {
-						$.post("chops/close", {chopID: chop.chopID}, function (data, textStatus, jqXHR) {
-							$chop.remove();
-						}, "json");
-					})
-				)
+				.append($operations)
 			;
+
+			setChop(chop, $description, $operations);
 
 			$.getJSON("chops/participants", {chopID: chop.chopID}, function (data, textStatus, jqXHR) {
 				$.each(data, function (index, value) {
@@ -170,8 +201,11 @@
 				.append($("<td></td>")
 					.addClass("team" + participant.teamID)
 					.text(teams[participant.teamID])
-				).append($("<td></td>").text(participant.shares))
-				.append($("<td></td>")
+				).append($("<td></td>")
+					.text(participant.shares)
+				).append($("<td></td>")
+				).append($("<td></td>")
+				).append($("<td></td>")
 					.append($("<button class='btn'>Delete</button>")
 						.click(function () {
 							$.post("chops/participants/delete", {chopID: chopID, teamID: participant.teamID}, function (data, textStatus, jqXHR) {
@@ -227,8 +261,6 @@
 
 			$input = $("<input placeholder='Description' type='text'></input>");
 			$chop = $("<div></div>")
-				.addClass("well")
-				.addClass("span" + chopWidth)
 				.append($("<p></p>")
 					.append($input)
 				).append($("<button class='btn'>Save</button>")
