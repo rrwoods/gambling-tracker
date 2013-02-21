@@ -5,7 +5,7 @@
 	var chopCount, $chopsRow, chopWidth, teams;
 
 	chopCount = 0;
-	chopWidth = 4;
+	chopWidth = 6;
 	teams = {};
 
 	function displayChop($chop) {
@@ -25,7 +25,7 @@
 		$operationsCell.empty();
 		$operationsCell.append($("<button class='btn'>Edit</button>")
 			.click(function () {
-				var $input = $("<input>").val(pool.description);
+				var $input = $("<input placeholder='Description' type='text'>").val(pool.description);
 
 				$descriptionCell.empty();
 				$descriptionCell.append($input);
@@ -50,7 +50,7 @@
 		$operationsCell.empty();
 		$operationsCell.append($("<button class='btn'>Edit</button>")
 			.click(function () {
-				var $input = $("<input>").val(team.name);
+				var $input = $("<input placeholder='Name' type='text'>").val(team.name);
 
 				$nameCell.empty();
 				$nameCell.append($input);
@@ -107,8 +107,47 @@
 				.append($("<p class='lead'></p>").text(chop.description))
 				.append($("<p></p>").text("Started " + chop.started))
 				.append($participants)
-				.append($("<button class='btn'>Add Participant</button>"))
-				.append($("<button class='btn'>Close Chop</button>")
+				.append($("<button class='btn'>Add Participant</button>")
+					.click(function () {
+						var $participant, $sharesInput, $teamInput;
+
+						$sharesInput = $("<input class='input-mini' placeholder='Shares' type='number'></input>");
+						$teamInput = $("<select></select>");
+						$.each(teams, function (index, value) {
+							$teamInput.append($("<option></option>")
+								.addClass("team" + index)
+								.text(value)
+								.val(index)
+							);
+						});
+
+						$(document).on("gambling:addTeam", function (event, team) {
+							$teamInput.append($("<option></option>")
+								.addClass("team" + team.teamID)
+								.text(team.name)
+								.val(team.teamID)
+							);
+						});
+
+						$participant = $("<tr></tr>")
+							.append($("<td></td>")
+								.append($teamInput)
+							).append($("<td></td>")
+								.append($sharesInput)
+							).append($("<td></td>")
+								.append($("<button class='btn'>Save</button>")
+									.click(function () {
+										$.post("chops/participants/add", {chopID: chop.chopID, teamID: $teamInput.val(), shares: $sharesInput.val()}, function (data, textStatus, jqXHR) {
+											$participant.remove();
+											$(document).trigger("gambling:addChopParticipant", [chop.chopID, $participants, data]);
+										}, "json");
+									})
+								)
+							)
+						;
+						$participants.append($participant);
+					})
+				).append($("<button class='btn'>Close Chop</button>")
 					.click(function () {
 						$.post("chops/close", {chopID: chop.chopID}, function (data, textStatus, jqXHR) {
 							$chop.remove();
@@ -119,20 +158,30 @@
 
 			$.getJSON("chops/participants", {chopID: chop.chopID}, function (data, textStatus, jqXHR) {
 				$.each(data, function (index, value) {
-					$participants.append($("<tr></tr>")
-						.append($("<td></td>")
-							.addClass("team" + value.teamID)
-							.text(teams[value.teamID])
-						).append($("<td></td>").text(value.shares))
-						.append($("<td></td>")
-							.append($("<button class='btn'>Edit</button>"))
-							.append($("<button class='btn'>Delete</button>"))
-						)
-					);
+					$(document).trigger("gambling:addChopParticipant", [chop.chopID, $participants, value]);
 				});
 			});
 
 			displayChop($chop);
+		});
+
+		$(document).on("gambling:addChopParticipant", function (event, chopID, $participants, participant) {
+			var $participant = $("<tr></tr>")
+				.append($("<td></td>")
+					.addClass("team" + participant.teamID)
+					.text(teams[participant.teamID])
+				).append($("<td></td>").text(participant.shares))
+				.append($("<td></td>")
+					.append($("<button class='btn'>Delete</button>")
+						.click(function () {
+							$.post("chops/participants/delete", {chopID: chopID, teamID: participant.teamID}, function (data, textStatus, jqXHR) {
+								$participant.remove();
+							}, "json");
+						})
+					)
+				)
+			;
+			$participants.append($participant);
 		});
 
 		$(document).on("gambling:addPool", function (event, pool) {
@@ -151,7 +200,6 @@
 				.append($operationsCell)
 			);
 		});
-
 
 		$(document).on("gambling:addTeam", function (event, team) {
 			var $nameCell, $operationsCell;
@@ -177,7 +225,7 @@
 		$("#addChopButton").click(function () {
 			var $chop, $input;
 
-			$input = $("<input></input>");
+			$input = $("<input placeholder='Description' type='text'></input>");
 			$chop = $("<div></div>")
 				.addClass("well")
 				.addClass("span" + chopWidth)
@@ -199,7 +247,7 @@
 		$("#addPoolButton").click(function () {
 			var $descriptionInput, $poolRow, $teamInput;
 
-			$descriptionInput = $("<input>");
+			$descriptionInput = $("<input placeholder='Description' type='text'>");
 			$teamInput = $("<select></select>");
 			$.each(teams, function (index, value) {
 				$teamInput.append($("<option></option>")
@@ -241,7 +289,7 @@
 		$("#addTeamButton").click(function () {
 			var $input, $teamRow;
 
-			$input = $("<input>");
+			$input = $("<input placeholder='Name' type='text'>");
 			$teamRow = $("<tr></tr>")
 				.append($("<td></td>")
 					.append($input)
