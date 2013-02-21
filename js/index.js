@@ -8,7 +8,7 @@
 	chopWidth = 4;
 	teams = {};
 
-	function addChop($chop) {
+	function displayChop($chop) {
 		if (0 === chopCount % (12 / chopWidth)) {
 			$chopsRow = $("<div class='row-fluid'></div>");
 			$("#chops").append($chopsRow);
@@ -132,7 +132,7 @@
 				});
 			});
 
-			addChop($chop);
+			displayChop($chop);
 		});
 
 		$(document).on("gambling:addPool", function (event, pool) {
@@ -193,7 +193,7 @@
 				)
 			;
 
-			addChop($chop);
+			displayChop($chop);
 		});
 
 		$("#addPoolButton").click(function () {
