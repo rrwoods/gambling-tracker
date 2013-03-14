@@ -19,7 +19,7 @@
 		chopCount += 1;
 	}
 
-	function setChop(chop, $descriptionCell, $operationsCell) {
+	function setChop(chop, $chop, $participants, $descriptionCell, $operationsCell) {
 		$descriptionCell.empty();
 		$descriptionCell.text(chop.description);
 		$operationsCell.empty();
@@ -33,7 +33,7 @@
 				$operationsCell.append($("<button class='btn'>Save</button>")
 					.click(function () {
 						$.post("chops/edit", {chopID: chop.chopID, description: $input.val()}, function (data, textStatus, jqXHR) {
-							setChop(data, $descriptionCell, $operationsCell);
+							setChop(data, $chop, $participants, $descriptionCell, $operationsCell);
 						}, "json");
 					})
 				);
@@ -185,7 +185,7 @@
 				.append($operations)
 			;
 
-			setChop(chop, $description, $operations);
+			setChop(chop, $chop, $participants, $description, $operations);
 
 			$.getJSON("chops/participants", {chopID: chop.chopID}, function (data, textStatus, jqXHR) {
 				$.each(data, function (index, value) {
