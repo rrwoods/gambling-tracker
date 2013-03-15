@@ -328,7 +328,6 @@ def teamsAdd():
 	return {
 		"teamID": teamID,
 		"name": name,
-		"defaultChop": defaultChop,
 		"triprollPool": triprollPool
 	}
 

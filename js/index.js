@@ -248,9 +248,6 @@
 				.append($operationsCell)
 			);
 
-			if (team.hasOwnProperty("defaultChop")) {
-				$(document).trigger("gambling:addChop", team.defaultChop);
-			}
 			if (team.hasOwnProperty("triprollPool")) {
 				$(document).trigger("gambling:addPool", team.triprollPool);
 			}
