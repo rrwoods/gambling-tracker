@@ -36,11 +36,10 @@ CREATE TABLE IF NOT EXISTS entries
 (
 	entryID     INTEGER        NOT NULL PRIMARY KEY AUTOINCREMENT,
 	chopID      INT            NOT NULL REFERENCES chops(chopID),
-	fromPoolID  INTEGER        NOT NULL REFERENCES pools(poolID),
-	intoPoolID  INTEGER        NOT NULL REFERENCES pools(poolID),
+	fromPoolID  INTEGER                 REFERENCES pools(poolID),
+	intoPoolID  INTEGER                 REFERENCES pools(poolID),
 	amount      DECIMAL(20, 2) NOT NULL,
 	description VARCHAR(256)   NOT NULL,
-	poolID      INT            NOT NULL,
 	entered     TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	played      TIMESTAMP      NOT NULL
 );
