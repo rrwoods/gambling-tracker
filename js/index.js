@@ -253,6 +253,12 @@
 			}
 		});
 
+		$("#addEntryButton").click(function () {
+			var $input;
+
+			$input = $("<input placeholder='Description' type='text'></input>");
+		});
+
 		$("#addChopButton").click(function () {
 			var $chop, $input;
 
