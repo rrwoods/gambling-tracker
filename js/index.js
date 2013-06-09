@@ -66,8 +66,8 @@
 						.append($teamInput)
 					).append($("<td></td>")
 						.append($sharesInput)
-					).append($("<td></td>")
-					).append($("<td></td>")
+					).append($("<td>0</td>")
+					).append($("<td>0</td>")
 					).append($("<td></td>")
 						.append($("<button class='btn'>Save</button>")
 							.click(function () {
@@ -203,8 +203,8 @@
 					.text(teams[participant.teamID])
 				).append($("<td></td>")
 					.text(participant.shares)
-				).append($("<td></td>")
-				).append($("<td></td>")
+				).append($("<td>0</td>")
+				).append($("<td>0</td>")
 				).append($("<td></td>")
 					.append($("<button class='btn'>Delete</button>")
 						.click(function () {
