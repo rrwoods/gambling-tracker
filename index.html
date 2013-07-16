@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<html ng-app="gamblingApp">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="css/bootstrap.min.css">
 <title>Gambling Tracker</title>
@@ -30,7 +31,7 @@
 		</div>
 	</div>
 	<div class="row-fluid">
-		<div class="span8">
+		<div class="span8" ng-controller="PoolsCtrl">
 			<h1>Pools</h1>
 			<table border="1" class="table table-bordered table-condensed table-hover">
 				<thead><tr>
@@ -44,7 +45,7 @@
 			</table>
 			<button class="btn" id="addPoolButton">Add Pool</button>
 		</div>
-		<div class="span4">
+		<div class="span4" ng-controller="TeamsCtrl">
 			<h1>Teams</h1>
 			<table border="1" class="table table-bordered table-condensed table-hover">
 				<thead><tr>
@@ -52,9 +53,16 @@
 					<th>Operations</th>
 				</tr></thead>
 				<tbody id="teams">
+					<tr ng-repeat="team in teams">
+						<td>{{team.name}}</td>
+						<td><button class='btn'>Edit</button></td>
+					</tr>
+					<tr>
+						<td><input placeholder="Name" type="text" ng-model="addTeamName"></td>
+						<td><button class="btn" ng-click="addTeam(addTeamName)">Add Team</button></td>
+					</tr>
 				</tbody>
 			</table>
-			<button class="btn" id="addTeamButton">Add Team</button>
 		</div>
 	</div>
 	<div class="row-fluid">
@@ -69,4 +77,7 @@
 	</div>
 </div>
 <script src="js/jquery-1.9.1.min.js" type="text/javascript"></script>
+<script src="js/angular.min.js" type="text/javascript"></script>
+<script src="js/angular-resource.min.js" type="text/javascript"></script>
 <script src="js/index.js" type="text/javascript"></script>
+</html>

@@ -1,4 +1,44 @@
-/*jslint white: true */
+(function (window, angular, undefined) {
+	"use strict";
+
+	var ajaxError, app;
+
+	ajaxError = function (error) {
+		window.console.error("AJAX error " + error.status + ": " + error.data);
+		window.alert("AJAX error; see console for more details");
+	};
+
+	app = angular.module("gamblingApp", ['ngResource']);
+
+	app.factory("GamblingData", ["$resource", function ($resource) {
+		var ret, team;
+
+		team = $resource('teams/:teamID');
+
+		ret = {
+			addTeam: function (teamName) {
+				var newTeam = new team({name: teamName});
+				newTeam.$save(function () {
+					ret.teams.push(newTeam);
+				}, ajaxError);
+			},
+			teams: team.query(angular.noop, ajaxError)
+		};
+		return ret;
+	}]);
+
+	app.controller("PoolsCtrl", ["$scope", 'GamblingData', function ($scope, GamblingData) {
+		$scope.teams = GamblingData.teams;
+	}]);
+
+	app.controller("TeamsCtrl", ["$scope", 'GamblingData', function ($scope, GamblingData) {
+		$scope.addTeam = GamblingData.addTeam;
+		$scope.teams = GamblingData.teams;
+	}]);
+/*global window: false */
+}(window, window.angular));
+
+
 (function ($, document, window) {
 	"use strict";
 
@@ -115,31 +155,6 @@
 		);
 	}
 
-	function setTeam(team, $nameCell, $operationsCell) {
-		teams[team.teamID] = team.name;
-		$(".team" + team.teamID).text(team.name);
-
-		$nameCell.empty();
-		$nameCell.text(team.name);
-		$operationsCell.empty();
-		$operationsCell.append($("<button class='btn'>Edit</button>")
-			.click(function () {
-				var $input = $("<input placeholder='Name' type='text'>").val(team.name);
-
-				$nameCell.empty();
-				$nameCell.append($input);
-				$operationsCell.empty();
-				$operationsCell.append($("<button class='btn'>Save</button>")
-					.click(function () {
-						$.post("teams/edit", {teamID: team.teamID, name: $input.val()}, function (data, textStatus, jqXHR) {
-							setTeam(data, $nameCell, $operationsCell);
-						}, "json");
-					})
-				);
-			})
-		);
-	}
-
 	$(document).ajaxError(function (event, jqXHR, ajaxSettings, thrownError) {
 		window.console.error("AJAX error with status " + jqXHR.status + ": \"" + jqXHR.statusText + "\"");
 		if(jqXHR.hasOwnProperty("responseText")) {
@@ -159,12 +174,6 @@
 			$.getJSON("pools", {}, function (data, textStatus, jqXHR) {
 				$.each(data, function (index, value) {
 					$(document).trigger("gambling:addPool", value);
-				});
-			});
-
-			$.getJSON("teams", {}, function (data, textStatus, jqXHR) {
-				$.each(data, function (index, value) {
-					$(document).trigger("gambling:addTeam", value);
 				});
 			});
 
@@ -319,28 +328,6 @@
 			;
 
 			$("#pools").append($poolRow);
-		});
-
-		$("#addTeamButton").click(function () {
-			var $input, $teamRow;
-
-			$input = $("<input placeholder='Name' type='text'>");
-			$teamRow = $("<tr></tr>")
-				.append($("<td></td>")
-					.append($input)
-				).append($("<td></td>")
-					.append($("<button class='btn'>Save</button>")
-						.click(function () {
-							$.post("teams/add", {name: $input.val()}, function (data, textStatus, jqXHR) {
-								$teamRow.remove();
-								$(document).trigger("gambling:addTeam", data);
-							}, "json");
-						})
-					)
-				)
-			;
-
-			$("#teams").append($teamRow);
 		});
 
 		$("#executeSQLButton").click(function () {

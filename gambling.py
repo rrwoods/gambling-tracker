@@ -187,6 +187,11 @@ def initializeDatabase(connection):
 def js(filename):
 	return bottle.static_file(filename, root = "js/")
 
+def jsonParameter(name):
+	if name in bottle.request.json:
+		return bottle.request.json[name]
+	raise bottle.HTTPResponse(status = 400, body = "Expected json parameter " + name)
+
 @bottle.route("/pools")
 def pools():
 	rows = connection.execute("""
@@ -262,7 +267,7 @@ def queryParameter(name):
 		return getattr(bottle.request.query, name)
 	raise bottle.HTTPResponse(status = 400, body = "Expected query parameter " + name)
 
-@bottle.route("/teams")
+@bottle.route("/teams", method = "GET")
 def teams():
 	rows = connection.execute("""
 		SELECT
@@ -276,9 +281,9 @@ def teams():
 		"name": str(row[1])
 	} for row in rows])
 
-@bottle.route("/teams/add", method = "POST")
+@bottle.route("/teams", method = "POST")
 def teamsAdd():
-	name = str(formParameter("name"))
+	name = str(jsonParameter("name"))
 
 	defaultChop = {"description": name + " default chop"}
 	triprollPool = {"description": name + " triproll", "balance": 0.0}
@@ -331,10 +336,11 @@ def teamsAdd():
 		"triprollPool": triprollPool
 	}
 
-@bottle.route("/teams/edit", method = "POST")
-def teamsEdit():
-	teamID = int(formParameter("teamID"))
-	name = str(formParameter("name"))
+# According to REST, this should be a PUT, not a POST, but AngularJS does a
+# POST by default when saving existing items
+@bottle.route("/teams/<teamID>", method = "POST")
+def teamsEdit(teamID):
+	name = str(jsonParameter("name"))
 	connection.execute("""
 		UPDATE teams
 		SET name = ?
