@@ -41,9 +41,22 @@
 					<th>Operations</th>
 				</tr></thead>
 				<tbody id="pools">
+					<tr ng-repeat="pool in model.pools">
+						<td>{{model.teams[pool.teamID].name}}</td>
+						<td><input type="text" ng-model="pool.description"></td>
+						<td>{{pool.balance}}</td>
+						<td><button class="btn" ng-click="model.setPool(pool)">Save</button></td>
+					</tr>
+					<tr>
+						<td><select ng-model="model.addPoolTeamID">
+							<option ng-repeat="team in model.teams" value="{{team.teamID}}">{{team.name}}</option>
+						</select></td>
+						<td><input placeholder="Description" type="text" ng-model="model.addPoolDescription"></td>
+						<td>0</td>
+						<td><button class="btn" ng-click="model.addPool(model.addPoolTeamID, model.addPoolDescription)">Add Pool</button></td>
+					</tr>
 				</tbody>
 			</table>
-			<button class="btn" id="addPoolButton">Add Pool</button>
 		</div>
 		<div class="span4" ng-controller="TeamsCtrl">
 			<h1>Teams</h1>
@@ -53,13 +66,13 @@
 					<th>Operations</th>
 				</tr></thead>
 				<tbody id="teams">
-					<tr ng-repeat="team in teams">
-						<td>{{team.name}}</td>
-						<td><button class='btn'>Edit</button></td>
+					<tr ng-repeat="team in model.teams">
+						<td><input type="text" ng-model="team.name"></td>
+						<td><button class='btn' ng-click="model.setTeam(team)">Save</button></td>
 					</tr>
 					<tr>
-						<td><input placeholder="Name" type="text" ng-model="addTeamName"></td>
-						<td><button class="btn" ng-click="addTeam(addTeamName)">Add Team</button></td>
+						<td><input placeholder="Name" type="text" ng-model="model.addTeamName"></td>
+						<td><button class="btn" ng-click="model.addTeam(model.addTeamName)">Add Team</button></td>
 					</tr>
 				</tbody>
 			</table>

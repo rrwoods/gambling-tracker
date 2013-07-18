@@ -5,35 +5,70 @@
 
 	ajaxError = function (error) {
 		window.console.error("AJAX error " + error.status + ": " + error.data);
-		window.alert("AJAX error; see console for more details");
+		window.alert("AJAX error; see console for more details; if you were changing data, you should reload the page");
 	};
 
 	app = angular.module("gamblingApp", ['ngResource']);
 
 	app.factory("GamblingData", ["$resource", function ($resource) {
-		var ret, team;
+		var Pool, Team, ret;
 
-		team = $resource('teams/:teamID');
+		Pool = $resource("pools/:poolID");
+		Team = $resource("teams/:teamID");
 
 		ret = {
-			addTeam: function (teamName) {
-				var newTeam = new team({name: teamName});
-				newTeam.$save(function () {
-					ret.teams.push(newTeam);
+			addPool: function (teamID, poolDescription) {
+				console.log(teamID, poolDescription);
+				Pool.save({
+					teamID: teamID,
+					description: poolDescription
+				}, function (data) {
+					ret.pools[data.poolID] = data;
 				}, ajaxError);
 			},
-			teams: team.query(angular.noop, ajaxError)
+			addTeam: function (teamName) {
+				Team.save({
+					name: teamName
+				}, function (data) {
+					ret.teams[data.teamID] = data;
+					ret.pools[data.triprollPool.poolID] = data.triprollPool;
+				}, ajaxError);
+			},
+			setPool: function (pool) {
+				Pool.save({
+					poolID: pool.poolID
+				}, {
+					description: pool.description
+				}, angular.noop, ajaxError);
+			},
+			setTeam: function (team) {
+				Team.save({
+					teamID: team.teamID
+				}, {
+					name: team.name
+				}, angular.noop, ajaxError);
+			},
+			pools: Pool.get(angular.noop, ajaxError),
+			teams: Team.get(angular.noop, ajaxError)
 		};
 		return ret;
 	}]);
 
 	app.controller("PoolsCtrl", ["$scope", 'GamblingData', function ($scope, GamblingData) {
-		$scope.teams = GamblingData.teams;
+		$scope.model = {
+			addPool: GamblingData.addPool,
+			pools: GamblingData.pools,
+			setPool: GamblingData.setPool,
+			teams: GamblingData.teams
+		};
 	}]);
 
 	app.controller("TeamsCtrl", ["$scope", 'GamblingData', function ($scope, GamblingData) {
-		$scope.addTeam = GamblingData.addTeam;
-		$scope.teams = GamblingData.teams;
+		$scope.model = {
+			addTeam: GamblingData.addTeam,
+			setTeam: GamblingData.setTeam,
+			teams: GamblingData.teams
+		};
 	}]);
 /*global window: false */
 }(window, window.angular));
@@ -93,14 +128,6 @@
 					);
 				});
 
-				$(document).on("gambling:addTeam", function (event, team) {
-					$teamInput.append($("<option></option>")
-						.addClass("team" + team.teamID)
-						.text(team.name)
-						.val(team.teamID)
-					);
-				});
-
 				$participant = $("<tr></tr>")
 					.append($("<td></td>")
 						.append($teamInput)
@@ -131,30 +158,6 @@
 		);
 	}
 
-	function setPool(pool, $teamCell, $descriptionCell, $operationsCell) {
-		$teamCell.empty();
-		$teamCell.text(teams[pool.teamID]);
-		$descriptionCell.empty();
-		$descriptionCell.text(pool.description);
-		$operationsCell.empty();
-		$operationsCell.append($("<button class='btn'>Edit</button>")
-			.click(function () {
-				var $input = $("<input placeholder='Description' type='text'>").val(pool.description);
-
-				$descriptionCell.empty();
-				$descriptionCell.append($input);
-				$operationsCell.empty();
-				$operationsCell.append($("<button class='btn'>Save</button>")
-					.click(function () {
-						$.post("pools/edit", {poolID: pool.poolID, description: $input.val()}, function (data, textStatus, jqXHR) {
-							setPool(data, $teamCell, $descriptionCell, $operationsCell);
-						}, "json");
-					})
-				);
-			})
-		);
-	}
-
 	$(document).ajaxError(function (event, jqXHR, ajaxSettings, thrownError) {
 		window.console.error("AJAX error with status " + jqXHR.status + ": \"" + jqXHR.statusText + "\"");
 		if(jqXHR.hasOwnProperty("responseText")) {
@@ -168,12 +171,6 @@
 			$.getJSON("chops", {}, function (data, textStatus, jqXHR) {
 				$.each(data, function (index, value) {
 					$(document).trigger("gambling:addChop", value);
-				});
-			});
-
-			$.getJSON("pools", {}, function (data, textStatus, jqXHR) {
-				$.each(data, function (index, value) {
-					$(document).trigger("gambling:addPool", value);
 				});
 			});
 
@@ -227,41 +224,6 @@
 			$participants.append($participant);
 		});
 
-		$(document).on("gambling:addPool", function (event, pool) {
-			var $descriptionCell, $operationsCell, $teamCell;
-
-			$teamCell = $("<td></td>").addClass("team" + pool.teamID);
-			$descriptionCell = $("<td></td>");
-			$operationsCell = $("<td></td>");
-
-			setPool(pool, $teamCell, $descriptionCell, $operationsCell);
-
-			$("#pools").append($("<tr></tr>")
-				.append($teamCell)
-				.append($descriptionCell)
-				.append($("<td></td>").text(pool.balance))
-				.append($operationsCell)
-			);
-		});
-
-		$(document).on("gambling:addTeam", function (event, team) {
-			var $nameCell, $operationsCell;
-
-			$nameCell = $("<td></td>");
-			$operationsCell = $("<td></td>");
-
-			setTeam(team, $nameCell, $operationsCell);
-
-			$("#teams").append($("<tr></tr>")
-				.append($nameCell)
-				.append($operationsCell)
-			);
-
-			if (team.hasOwnProperty("triprollPool")) {
-				$(document).trigger("gambling:addPool", team.triprollPool);
-			}
-		});
-
 		$("#addEntryButton").click(function () {
 			var $input;
 
@@ -286,48 +248,6 @@
 			;
 
 			displayChop($chop);
-		});
-
-		$("#addPoolButton").click(function () {
-			var $descriptionInput, $poolRow, $teamInput;
-
-			$descriptionInput = $("<input placeholder='Description' type='text'>");
-			$teamInput = $("<select></select>");
-			$.each(teams, function (index, value) {
-				$teamInput.append($("<option></option>")
-					.addClass("team" + index)
-					.text(value)
-					.val(index)
-				);
-			});
-
-			$(document).on("gambling:addTeam", function (event, team) {
-				$teamInput.append($("<option></option>")
-					.addClass("team" + team.teamID)
-					.text(team.name)
-					.val(team.teamID)
-				);
-			});
-
-			$poolRow = $("<tr></tr>")
-				.append($("<td></td>")
-					.append($teamInput)
-				).append($("<td></td>")
-					.append($descriptionInput)
-				).append($("<td>0</td>"))
-				.append($("<td></td>")
-					.append($("<button class='btn'>Save</button>")
-						.click(function () {
-							$.post("pools/add", {teamID: $teamInput.val(), description: $descriptionInput.val()}, function (data, textStatus, jqXHR) {
-								$poolRow.remove();
-								$(document).trigger("gambling:addPool", data);
-							}, "json");
-						})
-					)
-				)
-			;
-
-			$("#pools").append($poolRow);
 		});
 
 		$("#executeSQLButton").click(function () {

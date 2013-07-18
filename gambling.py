@@ -192,7 +192,7 @@ def jsonParameter(name):
 		return bottle.request.json[name]
 	raise bottle.HTTPResponse(status = 400, body = "Expected json parameter " + name)
 
-@bottle.route("/pools")
+@bottle.route("/pools", method = "GET")
 def pools():
 	rows = connection.execute("""
 		SELECT
@@ -211,17 +211,21 @@ def pools():
 		FROM pools
 		ORDER BY poolID ASC
 	""")
-	return json.dumps([{
-		"poolID": int(row[0]),
-		"teamID": int(row[1]),
-		"description": str(row[2]),
-		"balance": float(row[3])
-	} for row in rows])
+	ret = {}
+	for row in rows:
+		poolID = int(row[0])
+		ret[poolID] = {
+			"poolID": poolID,
+			"teamID": int(row[1]),
+			"description": str(row[2]),
+			"balance": float(row[3])
+		}
+	return ret
 
-@bottle.route("/pools/add", method = "POST")
+@bottle.route("/pools", method = "POST")
 def poolsAdd():
-	teamID = int(formParameter("teamID"))
-	description = str(formParameter("description"))
+	teamID = int(jsonParameter("teamID"))
+	description = str(jsonParameter("description"))
 	cursor = connection.cursor()
 	cursor.execute("""
 		INSERT INTO pools(teamID, description)
@@ -236,10 +240,11 @@ def poolsAdd():
 		"balance": 0
 	}
 
-@bottle.route("/pools/edit", method = "POST")
-def poolsEdit():
-	poolID = int(formParameter("poolID"))
-	description = str(formParameter("description"))
+# According to REST, this should be a PUT, not a POST, but AngularJS does a
+# POST by default when saving existing items
+@bottle.route("/pools/<poolID>", method = "POST")
+def poolsEdit(poolID):
+	description = str(jsonParameter("description"))
 	cursor = connection.cursor()
 	cursor.execute("""
 		UPDATE pools
@@ -276,10 +281,14 @@ def teams():
 		FROM teams
 		ORDER BY teamID ASC
 	""")
-	return json.dumps([{
-		"teamID": int(row[0]),
-		"name": str(row[1])
-	} for row in rows])
+	ret = {}
+	for row in rows:
+		teamID = int(row[0])
+		ret[teamID] = {
+			"teamID": int(row[0]),
+			"name": str(row[1])
+		}
+	return ret
 
 @bottle.route("/teams", method = "POST")
 def teamsAdd():
