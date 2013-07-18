@@ -3,13 +3,35 @@
 
 	var app = angular.module("gamblingApp", ['ngResource']);
 
-	app.factory("GamblingData", ["$resource", "$window", function ($resource, $window) {
-		var ajaxError, Pool, ret, Team;
-
-		ajaxError = function (error) {
+	app.factory("AJAXError", ["$window", function ($window) {
+		return function (error) {
 			$window.console.error("AJAX error " + error.status + ": " + error.data);
 			$window.alert("AJAX error; see console for more details; if you were changing data, you should reload the page");
 		};
+	}]);
+
+	app.factory("ExecuteSQL", ["$resource", "AJAXError", function ($resource, AJAXError) {
+		var ret, SQL;
+
+		SQL = $resource("execute");
+
+		ret = {
+			execute: function (statement) {
+				SQL.save({
+					statement: statement
+				}, function (data) {
+					ret.output.rows = data;
+				}, AJAXError);
+			},
+			output: {
+				rows: {}
+			}
+		};
+		return ret;
+	}]);
+
+	app.factory("GamblingData", ["$resource", "AJAXError", function ($resource, AJAXError) {
+		var Pool, ret, Team;
 
 		Pool = $resource("pools/:poolID");
 		Team = $resource("teams/:teamID");
@@ -21,7 +43,7 @@
 					description: poolDescription
 				}, function (data) {
 					ret.pools[data.poolID] = data;
-				}, ajaxError);
+				}, AJAXError);
 			},
 			addTeam: function (teamName) {
 				Team.save({
@@ -29,29 +51,29 @@
 				}, function (data) {
 					ret.teams[data.teamID] = data;
 					ret.pools[data.triprollPool.poolID] = data.triprollPool;
-				}, ajaxError);
+				}, AJAXError);
 			},
 			setPool: function (pool) {
 				Pool.save({
 					poolID: pool.poolID
 				}, {
 					description: pool.description
-				}, angular.noop, ajaxError);
+				}, angular.noop, AJAXError);
 			},
 			setTeam: function (team) {
 				Team.save({
 					teamID: team.teamID
 				}, {
 					name: team.name
-				}, angular.noop, ajaxError);
+				}, angular.noop, AJAXError);
 			},
-			pools: Pool.get(angular.noop, ajaxError),
-			teams: Team.get(angular.noop, ajaxError)
+			pools: Pool.get(angular.noop, AJAXError),
+			teams: Team.get(angular.noop, AJAXError)
 		};
 		return ret;
 	}]);
 
-	app.controller("PoolsCtrl", ["$scope", 'GamblingData', function ($scope, GamblingData) {
+	app.controller("PoolsCtrl", ["$scope", "GamblingData", function ($scope, GamblingData) {
 		$scope.model = {
 			addPool: GamblingData.addPool,
 			pools: GamblingData.pools,
@@ -60,7 +82,14 @@
 		};
 	}]);
 
-	app.controller("TeamsCtrl", ["$scope", 'GamblingData', function ($scope, GamblingData) {
+	app.controller("SQLCtrl", ["$scope", "ExecuteSQL", function ($scope, ExecuteSQL) {
+		$scope.model = {
+			executeSQL: ExecuteSQL.execute,
+			output: ExecuteSQL.output
+		};
+	}]);
+
+	app.controller("TeamsCtrl", ["$scope", "GamblingData", function ($scope, GamblingData) {
 		$scope.model = {
 			addTeam: GamblingData.addTeam,
 			setTeam: GamblingData.setTeam,
@@ -245,18 +274,6 @@
 			;
 
 			displayChop($chop);
-		});
-
-		$("#executeSQLButton").click(function () {
-			$.post("execute", {statement: $("#executeSQLInput").val()}, function (data, textStatus, jqXHR) {
-				$("#executeSQLTable").empty().append($.map(data, function (value, index) {
-					return $("<tr></tr>")
-						.append($.map(value, function (innerValue, innerIndex) {
-							return $("<td></td>").text(innerValue);
-						}))
-					;
-				}));
-			}, "json");
 		});
 	});
 /*global jQuery: false, document: false, window: false */

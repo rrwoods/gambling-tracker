@@ -40,7 +40,7 @@
 					<th>Balance</th>
 					<th>Operations</th>
 				</tr></thead>
-				<tbody id="pools">
+				<tbody>
 					<tr ng-repeat="pool in model.pools">
 						<td>{{model.teams[pool.teamID].name}}</td>
 						<td><input type="text" ng-model="pool.description"></td>
@@ -65,7 +65,7 @@
 					<th>Name</th>
 					<th>Operations</th>
 				</tr></thead>
-				<tbody id="teams">
+				<tbody>
 					<tr ng-repeat="team in model.teams">
 						<td><input type="text" ng-model="team.name"></td>
 						<td><button class='btn' ng-click="model.setTeam(team)">Save</button></td>
@@ -79,12 +79,15 @@
 		</div>
 	</div>
 	<div class="row-fluid">
-		<div class="span12">
+		<div class="span12" ng-controller="SQLCtrl">
 			<h1>Execute SQL Statement</h1>
 			<p>This can be used to SQL-inject yourself, so be careful! Only one statement allowed. See <a href="http://sqlite.org/lang.html">SQLite documentation</a> for what syntax is allowed.</p>
-			<textarea class="input-block-level" id="executeSQLInput"></textarea>
-			<button class="btn" id="executeSQLButton">Execute SQL</button>
-			<table border="1" class="table table-bordered table-condensed table-hover" id="executeSQLTable">
+			<textarea class="input-block-level" ng-model="model.statement"></textarea>
+			<button class="btn" ng-click="model.executeSQL(model.statement)">Execute SQL</button>
+			<table border="1" class="table table-bordered table-condensed table-hover">
+				<tr ng-repeat="row in model.output.rows">
+					<td ng-repeat="column in row">{{column}}</td>
+				</tr>
 			</table>
 		</div>
 	</div>

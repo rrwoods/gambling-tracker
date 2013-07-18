@@ -159,11 +159,14 @@ def error(exception):
 
 @bottle.route("/execute", method = "POST")
 def execute():
-	statement = str(formParameter("statement"))
+	statement = str(jsonParameter("statement"))
 	rows = connection.execute(statement)
-	# rows isn't a type the JSON library knows how to encode by default, but
-	# tuple is, so use it for output instead
-	return json.dumps(tuple(rows))
+	rowCount = 0
+	ret = {}
+	for row in rows:
+		ret[rowCount] = row
+		rowCount += 1
+	return ret
 
 def formParameter(name):
 	if name in bottle.request.forms:
