@@ -1,24 +1,21 @@
-(function (window, angular, undefined) {
+(function (angular, undefined) {
 	"use strict";
 
-	var ajaxError, app;
+	var app = angular.module("gamblingApp", ['ngResource']);
 
-	ajaxError = function (error) {
-		window.console.error("AJAX error " + error.status + ": " + error.data);
-		window.alert("AJAX error; see console for more details; if you were changing data, you should reload the page");
-	};
+	app.factory("GamblingData", ["$resource", "$window", function ($resource, $window) {
+		var ajaxError, Pool, ret, Team;
 
-	app = angular.module("gamblingApp", ['ngResource']);
-
-	app.factory("GamblingData", ["$resource", function ($resource) {
-		var Pool, Team, ret;
+		ajaxError = function (error) {
+			$window.console.error("AJAX error " + error.status + ": " + error.data);
+			$window.alert("AJAX error; see console for more details; if you were changing data, you should reload the page");
+		};
 
 		Pool = $resource("pools/:poolID");
 		Team = $resource("teams/:teamID");
 
 		ret = {
 			addPool: function (teamID, poolDescription) {
-				console.log(teamID, poolDescription);
 				Pool.save({
 					teamID: teamID,
 					description: poolDescription
@@ -70,8 +67,8 @@
 			teams: GamblingData.teams
 		};
 	}]);
-/*global window: false */
-}(window, window.angular));
+/*global angular: false */
+}(angular));
 
 
 (function ($, document, window) {
