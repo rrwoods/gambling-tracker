@@ -10,17 +10,15 @@
 		};
 	}]);
 
-	app.factory("ExecuteSQL", ["$resource", "AJAXError", function ($resource, AJAXError) {
+	app.factory("ExecuteSQL", ["$http", "AJAXError", function ($http, AJAXError) {
 		var ret, SQL;
-
-		SQL = $resource("execute");
 
 		ret = {
 			execute: function (statement) {
-				SQL.save({
+				$http.post("execute", {
 					statement: statement
-				}, function (data) {
-					ret.output.rows = data;
+				}).then(function (response) {
+					ret.output.rows = response.data;
 				}, AJAXError);
 			},
 			output: {
