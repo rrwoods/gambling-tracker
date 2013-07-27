@@ -27,12 +27,20 @@
 	}]);
 
 	app.factory("GamblingData", ["$resource", "AJAXError", function ($resource, AJAXError) {
-		var Pool, ret, Team;
+		var Chop, Pool, ret, Team;
 
+		Chop = $resource("chops/:chopID");
 		Pool = $resource("pools/:poolID");
 		Team = $resource("teams/:teamID");
 
 		ret = {
+			addChop: function (description) {
+				Chop.save({
+					description: description
+				}, function (data) {
+					ret.chops[data.chopID] = data;
+				}, AJAXError);
+			},
 			addPool: function (teamID, poolDescription) {
 				Pool.save({
 					teamID: teamID,
@@ -63,10 +71,20 @@
 					name: team.name
 				}, angular.noop, AJAXError);
 			},
+			chops: Chop.get(angular.noop, AJAXError),
 			pools: Pool.get(angular.noop, AJAXError),
 			teams: Team.get(angular.noop, AJAXError)
 		};
 		return ret;
+	}]);
+
+	app.controller("ChopsCtrl", ["$scope", "GamblingData", function ($scope, GamblingData) {
+		$scope.model = {
+			addChop: GamblingData.addChop,
+			chops: GamblingData.chops,
+			setChop: GamblingData.setChop,
+			teams: GamblingData.teams
+		};
 	}]);
 
 	app.controller("PoolsCtrl", ["$scope", "GamblingData", function ($scope, GamblingData) {

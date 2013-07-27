@@ -9,7 +9,7 @@ SQLITE3_DATABASE = "2013.sqlite3"
 SQLITE3_SCHEMA = "schema.sql"
 connection = sqlite3.connect(SQLITE3_DATABASE)
 
-@bottle.route("/chops")
+@bottle.route("/chops", method = "GET")
 def chops():
 	rows = connection.execute("""
 		SELECT
@@ -26,15 +26,19 @@ def chops():
 			)
 		ORDER BY chopID ASC
 	""")
-	return json.dumps([{
-		"chopID": int(row[0]),
-		"description": str(row[1]),
-		"started": str(row[2])
-	} for row in rows])
+	ret = {}
+	for row in rows:
+		chopID = int(row[0])
+		ret[chopID] = {
+			"chopID": chopID,
+			"description": str(row[1]),
+			"started": str(row[2]),
+		}
+	return ret
 
-@bottle.route("/chops/add", method = "POST")
+@bottle.route("/chops", method = "POST")
 def chopsAdd():
-	description = str(formParameter("description"))
+	description = str(jsonParameter("description"))
 	cursor = connection.cursor()
 	cursor.execute("""
 		INSERT INTO chops(description)
@@ -55,42 +59,37 @@ def chopsAdd():
 		"started": started
 	}
 
-@bottle.route("/chops/close", method = "POST")
-def chopsClose():
-	chopID = int(formParameter("chopID"))
+# According to REST, this should be a PUT, not a POST, but AngularJS does a
+# POST by default when saving existing items
+@bottle.route("/chops/<chopID>", method = "POST")
+def chopsEdit(chopID):
+	close = bool(jsonParameter("close"))
+	description = str(jsonParameter("description"))
 	cursor = connection.cursor()
-	cursor.execute("""
-		UPDATE chops
-		SET ended = datetime('now')
-		WHERE
-			chopID = ? AND
-			chopID NOT IN
-			(
-				SELECT defaultChopID
-				FROM teams
-			)
-	""", (chopID, ))
-	if 1 != cursor.rowcount:
-		raise bottle.HTTPResponse(status = 400, body = "Must specify the chopID of an existing non-default chop")
-	connection.commit()
-	return {}
-
-@bottle.route("/chops/edit", method = "POST")
-def chopsEdit():
-	chopID = int(formParameter("chopID"))
-	description = str(formParameter("description"))
-	cursor = connection.cursor()
-	cursor.execute("""
-		UPDATE chops
-		SET description = ?
-		WHERE
-			chopID = ? AND
-			chopID NOT IN
-			(
-				SELECT defaultChopID
-				FROM teams
-			)
-	""", (description, chopID))
+	if close:
+		cursor.execute("""
+			UPDATE chops
+			SET ended = datetime('now')
+			WHERE
+				chopID = ? AND
+				chopID NOT IN
+				(
+					SELECT defaultChopID
+					FROM teams
+				)
+		""", (chopID, ))
+	else:
+		cursor.execute("""
+			UPDATE chops
+			SET description = ?
+			WHERE
+				chopID = ? AND
+				chopID NOT IN
+				(
+					SELECT defaultChopID
+					FROM teams
+				)
+		""", (description, chopID))
 	if 1 != cursor.rowcount:
 		raise bottle.HTTPResponse(status = 400, body = "Must specify the chopID of an existing non-default chop")
 	connection.commit()
@@ -191,9 +190,10 @@ def js(filename):
 	return bottle.static_file(filename, root = "js/")
 
 def jsonParameter(name):
-	if name in bottle.request.json:
+	try:
 		return bottle.request.json[name]
-	raise bottle.HTTPResponse(status = 400, body = "Expected json parameter " + name)
+	except TypeError:
+		raise bottle.HTTPResponse(status = 400, body = "Expected json parameter " + name)
 
 @bottle.route("/pools", method = "GET")
 def pools():
