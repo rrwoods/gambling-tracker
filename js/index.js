@@ -11,9 +11,7 @@
 	}]);
 
 	app.factory("ExecuteSQL", ["$http", "AJAXError", function ($http, AJAXError) {
-		var ret, SQL;
-
-		ret = {
+		var ret = {
 			execute: function (statement) {
 				$http.post("execute", {
 					statement: statement
