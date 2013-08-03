@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html ng-app="gamblingApp">
+<html data-ng-app="gamblingApp">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="css/bootstrap.min.css">
 <title>Gambling Tracker</title>
@@ -24,22 +24,22 @@
 		</div>
 	</div>
 	<div class="row">
-		<div class="col-lg-12" ng-controller="ChopsCtrl">
+		<div class="col-lg-12" data-ng-controller="ChopsCtrl">
 			<h1>Chops</h1>
-			<div class="row" ng-repeat="row in model.chops | makeRows:2">
-				<div class="col-lg-6 panel" ng-repeat="chop in row">
+			<div class="row" data-ng-repeat="row in model.chops | makeRows:2">
+				<div class="col-lg-6 panel" data-ng-repeat="chop in row">
 					<div class="panel-heading">
 						<h2 class="panel-title">{{chop.description}}</h2>
 					</div>
 					<p>Started {{chop.started}}</p>
-					<table border='1' class='table table-bordered table-condensed table-hover'>
-						<thead>
+					<table border="1" class="table table-bordered table-condensed table-hover">
+						<thead><tr>
 							<th>Team</th>
 							<th>Shares</th>
 							<th>Result</th>
 							<th>Actual</th>
 							<th>Operations</th>
-						</thead>
+						</tr></thead>
 					</table>
 					<p>
 						<button class="btn btn-default">Save</button>
@@ -52,7 +52,7 @@
 		</div>
 	</div>
 	<div class="row">
-		<div class="col-lg-8" ng-controller="PoolsCtrl">
+		<div class="col-lg-8" data-ng-controller="PoolsCtrl">
 			<h1>Pools</h1>
 			<table border="1" class="table table-bordered table-condensed table-hover">
 				<thead><tr>
@@ -62,24 +62,24 @@
 					<th>Operations</th>
 				</tr></thead>
 				<tbody>
-					<tr ng-repeat="pool in model.pools">
+					<tr data-ng-repeat="pool in model.pools">
 						<td>{{model.teams[pool.teamID].name}}</td>
-						<td><input class="form-control" type="text" ng-model="pool.description"></td>
+						<td><input class="form-control" type="text" data-ng-model="pool.description"></td>
 						<td>{{pool.balance}}</td>
-						<td><button class="btn btn-default" ng-click="model.setPool(pool)">Save</button></td>
+						<td><button class="btn btn-default" data-ng-click="model.setPool(pool)">Save</button></td>
 					</tr>
 					<tr>
-						<td><select class="form-control" ng-model="model.addPoolTeamID">
-							<option ng-repeat="team in model.teams" value="{{team.teamID}}">{{team.name}}</option>
+						<td><select class="form-control" data-ng-model="model.addPoolTeamID">
+							<option data-ng-repeat="team in model.teams" value="{{team.teamID}}">{{team.name}}</option>
 						</select></td>
-						<td><input class="form-control" placeholder="Description" type="text" ng-model="model.addPoolDescription"></td>
+						<td><input class="form-control" placeholder="Description" type="text" data-ng-model="model.addPoolDescription"></td>
 						<td>0</td>
-						<td><button class="btn btn-default" ng-click="model.addPool(model.addPoolTeamID, model.addPoolDescription)">Add Pool</button></td>
+						<td><button class="btn btn-default" data-ng-click="model.addPool(model.addPoolTeamID, model.addPoolDescription)">Add Pool</button></td>
 					</tr>
 				</tbody>
 			</table>
 		</div>
-		<div class="col-lg-4" ng-controller="TeamsCtrl">
+		<div class="col-lg-4" data-ng-controller="TeamsCtrl">
 			<h1>Teams</h1>
 			<table border="1" class="table table-bordered table-condensed table-hover">
 				<thead><tr>
@@ -87,31 +87,31 @@
 					<th>Operations</th>
 				</tr></thead>
 				<tbody>
-					<tr ng-repeat="team in model.teams">
-						<td><input class="form-control" type="text" ng-model="team.name"></td>
-						<td><button class="btn btn-default" ng-click="model.setTeam(team)">Save</button></td>
+					<tr data-ng-repeat="team in model.teams">
+						<td><input class="form-control" type="text" data-ng-model="team.name"></td>
+						<td><button class="btn btn-default" data-ng-click="model.setTeam(team)">Save</button></td>
 					</tr>
 					<tr>
-						<td><input class="form-control" placeholder="Name" type="text" ng-model="model.addTeamName"></td>
-						<td><button class="btn btn-default" ng-click="model.addTeam(model.addTeamName)">Add Team</button></td>
+						<td><input class="form-control" placeholder="Name" type="text" data-ng-model="model.addTeamName"></td>
+						<td><button class="btn btn-default" data-ng-click="model.addTeam(model.addTeamName)">Add Team</button></td>
 					</tr>
 				</tbody>
 			</table>
 		</div>
 	</div>
 	<div class="row">
-		<div class="col-lg-12" ng-controller="SQLCtrl">
+		<div class="col-lg-12" data-ng-controller="SQLCtrl">
 			<h1>Execute SQL Statement</h1>
 			<p>This can be used to SQL-inject yourself, so be careful! Only one statement allowed. See <a href="http://sqlite.org/lang.html">SQLite documentation</a> for what syntax is allowed.</p>
 			<div class="input-group">
-				<input class="form-control" ng-model="model.statement" type="text">
+				<input class="form-control" data-ng-model="model.statement" type="text">
 				<span class="input-group-btn">
-					<button class="btn btn-danger" ng-click="model.executeSQL(model.statement)">Execute SQL</button>
+					<button class="btn btn-danger" data-ng-click="model.executeSQL(model.statement)">Execute SQL</button>
 				</span>
 			</div>
 			<table border="1" class="table table-bordered table-condensed table-hover">
-				<tr ng-repeat="row in model.output.rows">
-					<td ng-repeat="column in row">{{column}}</td>
+				<tr data-ng-repeat="row in model.output.rows">
+					<td data-ng-repeat="column in row">{{column}}</td>
 				</tr>
 			</table>
 		</div>
