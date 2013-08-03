@@ -44,7 +44,7 @@
 					<p>
 						<button class="btn btn-default">Save</button>
 						<button class="btn btn-default">Add Participant</button>
-						<button class="btn btn-default">Close Chop</button>
+						<button class="btn btn-danger">Close Chop</button>
 					</p>
 				</div>
 			</div>
@@ -103,8 +103,12 @@
 		<div class="col-lg-12" ng-controller="SQLCtrl">
 			<h1>Execute SQL Statement</h1>
 			<p>This can be used to SQL-inject yourself, so be careful! Only one statement allowed. See <a href="http://sqlite.org/lang.html">SQLite documentation</a> for what syntax is allowed.</p>
-			<textarea class="form-control" ng-model="model.statement"></textarea>
-			<button class="btn btn-default" ng-click="model.executeSQL(model.statement)">Execute SQL</button>
+			<div class="input-group">
+				<input class="form-control" ng-model="model.statement" type="text">
+				<span class="input-group-btn">
+					<button class="btn btn-danger" ng-click="model.executeSQL(model.statement)">Execute SQL</button>
+				</span>
+			</div>
 			<table border="1" class="table table-bordered table-condensed table-hover">
 				<tr ng-repeat="row in model.output.rows">
 					<td ng-repeat="column in row">{{column}}</td>
