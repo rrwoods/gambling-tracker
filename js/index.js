@@ -1,4 +1,5 @@
-(function (angular, undefined) {
+/*jslint white: true */
+(function (angular) {
 	"use strict";
 
 	var app = angular.module("gamblingApp", ['ngResource']);
@@ -110,6 +111,41 @@
 			teams: GamblingData.teams
 		};
 	}]);
+
+	app.filter("makeRows", [function () {
+		// We cache the reults so that Angular doesn't think we keep returning
+		// different objects
+		var makeRows = function (input, num) {
+			var cacheKey, count, inner, ret;
+
+			cacheKey = angular.toJson({
+				input: input,
+				num: num
+			});
+
+			if (makeRows.cache.hasOwnProperty(cacheKey)) {
+				return makeRows.cache[cacheKey];
+			}
+
+			count = 0;
+			inner = {};
+			ret = [inner];
+			angular.forEach(input, function (value, key) {
+				inner[key] = value;
+				count += 1;
+				if (count === num) {
+					count = 0;
+					inner = {};
+					ret.push(inner);
+				}
+			});
+
+			makeRows.cache[cacheKey] = ret;
+			return ret;
+		};
+		makeRows.cache = {};
+		return makeRows;
+	}]);
 /*global angular: false */
 }(angular));
 
@@ -122,17 +158,6 @@
 	chopCount = 0;
 	chopWidth = 6;
 	teams = {};
-
-	function displayChop($chop) {
-		$chop.addClass("well");
-		$chop.addClass("span" + chopWidth);
-		if (0 === chopCount % (12 / chopWidth)) {
-			$chopsRow = $("<div class='row-fluid'></div>");
-			$("#chops").append($chopsRow);
-		}
-		$chopsRow.append($chop);
-		chopCount += 1;
-	}
 
 	function setChop(chop, $chop, $participants, $descriptionCell, $operationsCell) {
 		$descriptionCell.empty();
@@ -207,16 +232,6 @@
 	});
 
 	$(document).ready(function () {
-		if (0 === $("#dataLoaded").length) {
-			$.getJSON("chops", {}, function (data, textStatus, jqXHR) {
-				$.each(data, function (index, value) {
-					$(document).trigger("gambling:addChop", value);
-				});
-			});
-
-			$("body").append($("<div id='dataLoaded'></div>"));
-		}
-
 		$(document).on("gambling:addChop", function (event, chop) {
 			var $chop, $description, $operations, $participants;
 
