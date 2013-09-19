@@ -32,6 +32,7 @@ def chops():
 		ret[chopID] = {
 			"chopID": chopID,
 			"description": str(row[1]),
+			"ended": None,
 			"started": str(row[2]),
 		}
 	return ret
@@ -56,6 +57,7 @@ def chopsAdd():
 	return {
 		"chopID": chopID,
 		"description": description,
+		"ended": None,
 		"started": started
 	}
 
@@ -63,13 +65,14 @@ def chopsAdd():
 # POST by default when saving existing items
 @bottle.route("/chops/<chopID>", method = "POST")
 def chopsEdit(chopID):
-	close = bool(jsonParameter("close"))
+	endedOrNone = jsonParameter("ended")
 	description = str(jsonParameter("description"))
 	cursor = connection.cursor()
-	if close:
+	if endedOrNone is not None:
+		ended = str(endedOrNone)
 		cursor.execute("""
 			UPDATE chops
-			SET ended = datetime('now')
+			SET ended = ?
 			WHERE
 				chopID = ? AND
 				chopID NOT IN
@@ -77,7 +80,7 @@ def chopsEdit(chopID):
 					SELECT defaultChopID
 					FROM teams
 				)
-		""", (chopID, ))
+		""", (ended, chopID))
 	else:
 		cursor.execute("""
 			UPDATE chops

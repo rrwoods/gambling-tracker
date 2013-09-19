@@ -58,6 +58,18 @@
 					ret.pools[data.triprollPool.poolID] = data.triprollPool;
 				}, AJAXError);
 			},
+			closeChop: function (chop) {
+				chop.ended = (new Date()).toISOString();
+				delete ret.chops[chop.chopID];
+				Chop.save({
+					chopID: chop.chopID
+				}, chop, angular.noop, AJAXError);
+			},
+			setChop: function (chop) {
+				Chop.save({
+					chopID: chop.chopID
+				}, chop, angular.noop, AJAXError);
+			},
 			setPool: function (pool) {
 				Pool.save({
 					poolID: pool.poolID
@@ -83,6 +95,7 @@
 		$scope.model = {
 			addChop: GamblingData.addChop,
 			chops: GamblingData.chops,
+			closeChop: GamblingData.closeChop,
 			setChop: GamblingData.setChop,
 			teams: GamblingData.teams
 		};

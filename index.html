@@ -29,7 +29,7 @@
 			<div class="row" data-ng-repeat="row in model.chops | makeRows:2">
 				<div class="col-lg-6 panel" data-ng-repeat="chop in row">
 					<div class="panel-heading">
-						<h2 class="panel-title">{{chop.description}}</h2>
+						<input class="form-control" placeholder="Chop Name" type="text" data-ng-model="chop.description">
 					</div>
 					<p>Started {{chop.started}}</p>
 					<table border="1" class="table table-bordered table-condensed table-hover">
@@ -40,15 +40,33 @@
 							<th>Actual</th>
 							<th>Operations</th>
 						</tr></thead>
+						<tr>
+							<td><select class="form-control" data-ng-model="model.addChopParticipantTeamID">
+								<option data-ng-repeat="team in model.teams" value="{{team.teamID}}">{{team.name}}</option>
+							</select></td>
+							<td><input class="form-control" placeholder="Shares" type="Text" size="3" data-ng-model="model.addChopParticipantShares"></td>
+							<td></td>
+							<td></td>
+							<td><button class="btn btn-default">Add Participant</button></td>
+						</tr>
 					</table>
 					<p>
-						<button class="btn btn-default">Save</button>
-						<button class="btn btn-default">Add Participant</button>
-						<button class="btn btn-danger">Close Chop</button>
+						<button class="btn btn-default" data-ng-click="model.setChop(chop)">Save</button>
+						<button class="btn btn-danger" data-ng-click="model.closeChop(chop)">Close Chop</button>
 					</p>
 				</div>
 			</div>
-			<button class="btn btn-default" id="addChopButton">Add Chop</button>
+			<div class="row">
+				<div class="col-lg-6 panel">
+					<div class="panel-heading">
+						<input class="form-control" placeholder="Chop Name" type="text" data-ng-model="model.addChopName">
+						<h2 class="panel-title">{{chop.description}}</h2>
+					</div>
+					<p>
+						<button class="btn btn-default" data-ng-click="model.addChop(model.addChopName)">Add Chop</button>
+					</p>
+				</div>
+			</div>
 		</div>
 	</div>
 	<div class="row">
