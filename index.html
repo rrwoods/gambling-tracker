@@ -51,7 +51,7 @@
 						</tr>
 					</table>
 					<p>
-						<button class="btn btn-default" data-ng-click="model.setChop(chop)">Save</button>
+						<button class="btn btn-default" data-ng-click="model.saveChop(chop)">Save</button>
 						<button class="btn btn-danger" data-ng-click="model.closeChop(chop)">Close Chop</button>
 					</p>
 				</div>
@@ -84,7 +84,7 @@
 						<td>{{model.teams[pool.teamID].name}}</td>
 						<td><input class="form-control" type="text" data-ng-model="pool.description"></td>
 						<td>{{pool.balance}}</td>
-						<td><button class="btn btn-default" data-ng-click="model.setPool(pool)">Save</button></td>
+						<td><button class="btn btn-default" data-ng-click="model.savePool(pool)">Save</button></td>
 					</tr>
 					<tr>
 						<td><select class="form-control" data-ng-model="model.addPoolTeamID">
@@ -107,7 +107,7 @@
 				<tbody>
 					<tr data-ng-repeat="team in model.teams">
 						<td><input class="form-control" type="text" data-ng-model="team.name"></td>
-						<td><button class="btn btn-default" data-ng-click="model.setTeam(team)">Save</button></td>
+						<td><button class="btn btn-default" data-ng-click="model.saveTeam(team)">Save</button></td>
 					</tr>
 					<tr>
 						<td><input class="form-control" placeholder="Name" type="text" data-ng-model="model.addTeamName"></td>

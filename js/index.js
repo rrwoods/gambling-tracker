@@ -65,24 +65,20 @@
 					chopID: chop.chopID
 				}, chop, angular.noop, AJAXError);
 			},
-			setChop: function (chop) {
+			saveChop: function (chop) {
 				Chop.save({
 					chopID: chop.chopID
 				}, chop, angular.noop, AJAXError);
 			},
-			setPool: function (pool) {
+			savePool: function (pool) {
 				Pool.save({
 					poolID: pool.poolID
-				}, {
-					description: pool.description
-				}, angular.noop, AJAXError);
+				}, pool, angular.noop, AJAXError);
 			},
-			setTeam: function (team) {
+			saveTeam: function (team) {
 				Team.save({
 					teamID: team.teamID
-				}, {
-					name: team.name
-				}, angular.noop, AJAXError);
+				}, team, angular.noop, AJAXError);
 			},
 			chops: Chop.get(angular.noop, AJAXError),
 			pools: Pool.get(angular.noop, AJAXError),
@@ -96,7 +92,7 @@
 			addChop: GamblingData.addChop,
 			chops: GamblingData.chops,
 			closeChop: GamblingData.closeChop,
-			setChop: GamblingData.setChop,
+			saveChop: GamblingData.saveChop,
 			teams: GamblingData.teams
 		};
 	}]);
@@ -105,7 +101,7 @@
 		$scope.model = {
 			addPool: GamblingData.addPool,
 			pools: GamblingData.pools,
-			setPool: GamblingData.setPool,
+			savePool: GamblingData.savePool,
 			teams: GamblingData.teams
 		};
 	}]);
@@ -120,7 +116,7 @@
 	app.controller("TeamsCtrl", ["$scope", "GamblingData", function ($scope, GamblingData) {
 		$scope.model = {
 			addTeam: GamblingData.addTeam,
-			setTeam: GamblingData.setTeam,
+			saveTeam: GamblingData.saveTeam,
 			teams: GamblingData.teams
 		};
 	}]);
