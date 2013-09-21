@@ -109,11 +109,18 @@
 					teamID: team.teamID
 				}, team, angular.noop, AJAXError);
 			},
-			chops: Chop.get(function () {
-				angular.forEach(ret.chops, function (value) {
-					value.participants = ChopParticipant.get({
-						chopID: value.chopID
-					}, angular.noop, AJAXError);
+			chops: Chop.get(function (chops) {
+				angular.forEach(chops, function (chop) {
+					chop.totalAmount = 0;
+					chop.totalShares = 0;
+					chop.participants = ChopParticipant.get({
+						chopID: chop.chopID
+					}, function (chopParticipants) {
+						angular.forEach(chopParticipants, function (chopParticipant) {
+							chop.totalAmount += chopParticipant.amount;
+							chop.totalShares += chopParticipant.shares;
+						})
+					}, AJAXError);
 				});
 			}, AJAXError),
 			entries: Entry.get(angular.noop, AJAXError),
@@ -202,6 +209,37 @@
 		};
 		makeRows.cache = {};
 		return makeRows;
+	}]);
+
+	app.filter("noDefaultChops", [function () {
+		var noDefaultChops = function (chops, teams) {
+			var cacheKey, ret;
+
+			cacheKey = angular.toJson({
+				chops: chops,
+				teams: teams
+			});
+
+			if (noDefaultChops.cache.hasOwnProperty(cacheKey)) {
+				return noDefaultChops.cache[cacheKey];
+			}
+
+			ret = {};
+			angular.forEach(chops, function (chop, chopID) {
+				var found = false;
+				angular.forEach(teams, function (team) {
+					if (team.defaultChopID == chopID) {
+						found = true;
+					}
+				});
+				if (!found) {
+					ret[chopID] = chop;
+				}
+			});
+			return ret;
+		};
+		noDefaultChops.cache = {};
+		return noDefaultChops;
 	}]);
 /*global angular: false */
 }(angular));

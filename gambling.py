@@ -13,13 +13,7 @@ def chops():
 			description,
 			started
 		FROM chops
-		WHERE
-			ended IS NULL AND
-			chopID NOT IN
-			(
-				SELECT defaultChopID
-				FROM teams
-			)
+		WHERE ended IS NULL
 		ORDER BY chopID ASC
 	""")
 	ret = {}
@@ -102,7 +96,16 @@ def chopsParticipants(chopID):
 		SELECT
 			chopParticipantID,
 			teamID,
-			shares
+			shares,
+			(
+				SELECT total(amount)
+				FROM entries JOIN pools ON entries.intoPoolID = pools.poolID
+				WHERE pools.teamID = chopParticipants.teamID
+			) - (
+				SELECT total(amount)
+				FROM entries JOIN pools ON entries.fromPoolID = pools.poolID
+				WHERE pools.teamID = chopParticipants.teamID
+			) as amount
 		FROM chopParticipants
 		WHERE chopID = ?
 		ORDER BY teamID ASC
@@ -114,6 +117,7 @@ def chopsParticipants(chopID):
 			"chopParticipantID": chopParticipantID,
 			"teamID": int(row[1]),
 			"shares": int(row[2]),
+			"amount": float(row[3]),
 		}
 	return ret
 
@@ -352,7 +356,8 @@ def teams():
 	rows = connection.execute("""
 		SELECT
 			teamID,
-			name
+			name,
+			defaultChopID
 		FROM teams
 		ORDER BY teamID ASC
 	""")
@@ -362,6 +367,7 @@ def teams():
 		ret[teamID] = {
 			"teamID": int(row[0]),
 			"name": str(row[1]),
+			"defaultChopID": int(row[2])
 		}
 	return ret
 
