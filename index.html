@@ -5,7 +5,7 @@
 <title>Gambling Tracker</title>
 <div class="container">
 	<div class="row">
-		<div class="col-lg-12">
+		<div class="col-lg-12" data-ng-controller="EntriesCtrl">
 			<h1>Entries</h1>
 			<table border="1" class="table table-bordered table-condensed table-striped">
 				<thead><tr>
@@ -17,10 +17,35 @@
 					<th>Into</th>
 					<th>Operations</th>
 				</tr></thead>
-				<tbody id="entries">
+				<tbody>
+					<tr data-ng-repeat="entry in model.entries">
+						<td>{{entry.played}}</td>
+						<td>{{model.chops[entry.chopID].description}}</td>
+						<td>{{entry.amount}}</td>
+						<td>{{entry.description}}</td>
+						<td>{{model.pools[entry.fromPoolID].description}}</td>
+						<td>{{model.pools[entry.intoPoolID].description}}</td>
+						<td><button class="btn btn-default" data-ng-click="model.deleteEntry(entry)">Delete</button></td>
+					</tr>
+					<tr>
+						<td>Now</td>
+						<td><select class="form-control" data-ng-model="model.newEntry.chopID">
+									<option data-ng-repeat="chop in model.chops" value="{{chop.chopID}}">{{chop.description}}</option>
+						</select></td>
+						<td><input class="form-control" placeholder="Amount" size="4" type="text" data-ng-model="model.newEntry.amount"></td>
+						<td><input class="form-control" placeholder="Description" type="text" data-ng-model="model.newEntry.description"></td>
+						<td><select class="form-control" data-ng-model="model.newEntry.fromPoolID">
+							<option selected="1" value=""></option>
+							<option data-ng-repeat="pool in model.pools" value="{{pool.poolID}}">{{pool.description}}</option>
+						</select></td>
+						<td><select class="form-control" data-ng-model="model.newEntry.intoPoolID">
+							<option selected="1" value=""></option>
+							<option data-ng-repeat="pool in model.pools" value="{{pool.poolID}}">{{pool.description}}</option>
+						</select></td>
+						<td><button class="btn btn-default" data-ng-click="model.addEntry(model.newEntry)">Add Entry</button></td>
+					</tr>
 				</tbody>
 			</table>
-			<button class="btn btn-default" id="addEntryButton">Add Entry</button>
 		</div>
 	</div>
 	<div class="row">
@@ -49,13 +74,13 @@
 								<td><button class="btn btn-default" data-ng-click="model.deleteChopParticipant(chop, participant)">Delete</button></td>
 							</tr>
 							<tr>
-								<td><select class="form-control" data-ng-model="model.addChopParticipantTeamID">
+								<td><select class="form-control" data-ng-model="model.newChopParticipant.teamID">
 									<option data-ng-repeat="team in model.teams" value="{{team.teamID}}">{{team.name}}</option>
 								</select></td>
-								<td><input class="form-control" placeholder="Shares" type="Text" size="3" data-ng-model="model.addChopParticipantShares"></td>
+								<td><input class="form-control" placeholder="Shares" type="Text" size="3" data-ng-model="model.newChopParticipant.shares"></td>
 								<td></td>
 								<td></td>
-								<td><button class="btn btn-default" data-ng-click="model.addChopParticipant(chop, model.addChopParticipantTeamID, model.addChopParticipantShares)">Add Participant</button></td>
+								<td><button class="btn btn-default" data-ng-click="model.addChopParticipant(chop, model.newChopParticipant)">Add Participant</button></td>
 							</tr>
 						</tbody>
 					</table>
@@ -68,11 +93,10 @@
 			<div class="row">
 				<div class="col-lg-6 panel">
 					<div class="panel-heading">
-						<input class="form-control" placeholder="Chop Name" type="text" data-ng-model="model.addChopName">
-						<h2 class="panel-title">{{chop.description}}</h2>
+						<input class="form-control" placeholder="Chop Name" type="text" data-ng-model="model.newChop.description">
 					</div>
 					<p>
-						<button class="btn btn-default" data-ng-click="model.addChop(model.addChopName)">Add Chop</button>
+						<button class="btn btn-default" data-ng-click="model.addChop(model.newChop)">Add Chop</button>
 					</p>
 				</div>
 			</div>
@@ -96,12 +120,12 @@
 						<td><button class="btn btn-default" data-ng-click="model.savePool(pool)">Save</button></td>
 					</tr>
 					<tr>
-						<td><select class="form-control" data-ng-model="model.addPoolTeamID">
+						<td><select class="form-control" data-ng-model="model.newPool.teamID">
 							<option data-ng-repeat="team in model.teams" value="{{team.teamID}}">{{team.name}}</option>
 						</select></td>
-						<td><input class="form-control" placeholder="Description" type="text" data-ng-model="model.addPoolDescription"></td>
+						<td><input class="form-control" placeholder="Description" type="text" data-ng-model="model.newPool.description"></td>
 						<td>0</td>
-						<td><button class="btn btn-default" data-ng-click="model.addPool(model.addPoolTeamID, model.addPoolDescription)">Add Pool</button></td>
+						<td><button class="btn btn-default" data-ng-click="model.addPool(model.newPool)">Add Pool</button></td>
 					</tr>
 				</tbody>
 			</table>
@@ -119,8 +143,8 @@
 						<td><button class="btn btn-default" data-ng-click="model.saveTeam(team)">Save</button></td>
 					</tr>
 					<tr>
-						<td><input class="form-control" placeholder="Name" type="text" data-ng-model="model.addTeamName"></td>
-						<td><button class="btn btn-default" data-ng-click="model.addTeam(model.addTeamName)">Add Team</button></td>
+						<td><input class="form-control" placeholder="Name" type="text" data-ng-model="model.newTeam.name"></td>
+						<td><button class="btn btn-default" data-ng-click="model.addTeam(model.newTeam)">Add Team</button></td>
 					</tr>
 				</tbody>
 			</table>

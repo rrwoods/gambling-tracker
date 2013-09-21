@@ -54,18 +54,17 @@ def chopsAdd():
 		"chopID": chopID,
 		"description": description,
 		"ended": None,
-		"started": started
+		"started": started,
 	}
 
 # According to REST, this should be a PUT, not a POST, but AngularJS does a
 # POST by default when saving existing items
 @bottle.route("/chops/<chopID>", method = "POST")
 def chopsEdit(chopID):
-	endedOrNone = jsonParameter("ended")
+	ended = strOrNone(jsonParameter("ended"))
 	description = str(jsonParameter("description"))
 	cursor = connection.cursor()
-	if endedOrNone is not None:
-		ended = str(endedOrNone)
+	if ended is not None:
 		cursor.execute("""
 			UPDATE chops
 			SET ended = ?
@@ -94,7 +93,7 @@ def chopsEdit(chopID):
 	connection.commit()
 	return {
 		"chopID": chopID,
-		"description": description
+		"description": description,
 	}
 
 @bottle.route("/chops/<chopID>/participants", method = "GET")
@@ -114,7 +113,7 @@ def chopsParticipants(chopID):
 		ret[chopParticipantID] = {
 			"chopParticipantID": chopParticipantID,
 			"teamID": int(row[1]),
-			"shares": int(row[2])
+			"shares": int(row[2]),
 		}
 	return ret
 
@@ -133,7 +132,7 @@ def chopsParticipantsAdd(chopID):
 		"chopParticipantID": chopParticipantID,
 		"chopID": chopID,
 		"teamID": teamID,
-		"shares": shares
+		"shares": shares,
 	}
 
 @bottle.route("/chops/<chopID>/participants/<chopParticipantID>", method = "DELETE")
@@ -151,6 +150,81 @@ def chopsParticipantsDelete(chopID, chopParticipantID):
 @bottle.route("/css/<filename:path>")
 def css(filename):
 	return bottle.static_file(filename, root = "css/")
+
+@bottle.route("/entries", method = "GET")
+def entries():
+	rows = connection.execute("""
+		SELECT
+			entryID,
+			chopID,
+			fromPoolID,
+			intoPoolID,
+			amount,
+			description,
+			entered,
+			played
+		FROM entries
+		ORDER BY entryID ASC
+	""")
+	ret = {}
+	for row in rows:
+		entryID = int(row[0])
+		ret[entryID] = {
+			"entryID": entryID,
+			"chopID": int(row[1]),
+			"fromPoolID": intOrNone(row[2]),
+			"intoPoolID": intOrNone(row[3]),
+			"amount": float(row[4]),
+			"description": str(row[5]),
+			"entered": str(row[6]),
+			"played": str(row[7]),
+		}
+	return ret
+
+@bottle.route("/entries", method = "POST")
+def entriesAdd():
+	chopID = int(jsonParameter("chopID"))
+	try:
+		fromPoolID = int(bottle.request.json["fromPoolID"])
+	except KeyError:
+		fromPoolID = None
+	try:
+		intoPoolID = int(bottle.request.json["intoPoolID"])
+	except KeyError:
+		intoPoolID = None
+	amount = float(jsonParameter("amount"))
+	description = str(jsonParameter("description"))
+	entered = str(jsonParameter("entered"))
+	played = str(jsonParameter("played"))
+	cursor = connection.cursor()
+	cursor.execute("""
+		INSERT INTO entries(chopID, fromPoolID, intoPoolID, amount, description, entered, played)
+		VALUES (?, ?, ?, ?, ?, ?, ?)
+	""", (chopID, fromPoolID, intoPoolID, amount, description, entered, played))
+	entryID = cursor.lastrowid
+	connection.commit()
+	return {
+		"entryID": entryID,
+		"chopID": chopID,
+		"fromPoolID": fromPoolID,
+		"intoPoolID": intoPoolID,
+		"amount": amount,
+		"description": description,
+		"entered": entered,
+		"played": played,
+	}
+
+@bottle.route("/entries/<entryID>", method = "DELETE")
+def entriesDelete(entryID):
+	cursor = connection.cursor()
+	cursor.execute("""
+		DELETE FROM entries
+		WHERE entryID = ?
+	""", (entryID, ))
+	if 1 != cursor.rowcount:
+		raise bottle.HTTPResponse(status = 400, body = "Must specify the entryID of an existing entry")
+	connection.commit()
+	return {}
 
 # Anytime we have an error caused by us, not by the client
 @bottle.error(500)
@@ -180,6 +254,11 @@ def initializeDatabase(connection):
 	# If the tables weren't created just now, vaccum to keep them optimized
 	connection.execute("VACUUM")
 
+def intOrNone(var):
+	if var is None:
+		return var
+	return int(var)
+
 @bottle.route("/js/<filename:path>")
 def js(filename):
 	return bottle.static_file(filename, root = "js/")
@@ -187,7 +266,7 @@ def js(filename):
 def jsonParameter(name):
 	try:
 		return bottle.request.json[name]
-	except TypeError:
+	except KeyError:
 		raise bottle.HTTPResponse(status = 400, body = "Expected json parameter " + name)
 
 @bottle.route("/pools", method = "GET")
@@ -216,7 +295,7 @@ def pools():
 			"poolID": poolID,
 			"teamID": int(row[1]),
 			"description": str(row[2]),
-			"balance": float(row[3])
+			"balance": float(row[3]),
 		}
 	return ret
 
@@ -235,7 +314,7 @@ def poolsAdd():
 		"poolID": poolID,
 		"teamID": teamID,
 		"description": description,
-		"balance": 0
+		"balance": 0,
 	}
 
 # According to REST, this should be a PUT, not a POST, but AngularJS does a
@@ -260,8 +339,13 @@ def poolsEdit(poolID):
 	return {
 		"poolID": poolID,
 		"teamID": teamID,
-		"description": description
+		"description": description,
 	}
+
+def strOrNone(var):
+	if var is None:
+		return var
+	return str(var)
 
 @bottle.route("/teams", method = "GET")
 def teams():
@@ -277,7 +361,7 @@ def teams():
 		teamID = int(row[0])
 		ret[teamID] = {
 			"teamID": int(row[0]),
-			"name": str(row[1])
+			"name": str(row[1]),
 		}
 	return ret
 
@@ -333,7 +417,7 @@ def teamsAdd():
 	return {
 		"teamID": teamID,
 		"name": name,
-		"triprollPool": triprollPool
+		"triprollPool": triprollPool,
 	}
 
 # According to REST, this should be a PUT, not a POST, but AngularJS does a
@@ -349,7 +433,7 @@ def teamsEdit(teamID):
 	connection.commit()
 	return {
 		"teamID": teamID,
-		"name": name
+		"name": name,
 	}
 
 if __name__ == "__main__":

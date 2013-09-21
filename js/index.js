@@ -28,43 +28,45 @@
 	}]);
 
 	app.factory("GamblingData", ["$resource", "AJAXError", function ($resource, AJAXError) {
-		var Chop, ChopParticipant, Pool, ret, Team;
+		var Chop, ChopParticipant, Entry, Pool, ret, Team;
 
 		Chop = $resource("chops/:chopID");
 		ChopParticipant = $resource("chops/:chopID/participants/:chopParticipantID");
+		Entry = $resource("entries/:entryID");
 		Pool = $resource("pools/:poolID");
 		Team = $resource("teams/:teamID");
 
 		ret = {
-			addChop: function (description) {
-				Chop.save({
-					description: description
-				}, function (data) {
+			addChop: function (chop) {
+				Chop.save({}, chop, function (data) {
 					ret.chops[data.chopID] = data;
 				}, AJAXError);
 			},
-			addChopParticipant: function (chop, teamID, shares) {
-				ChopParticipant.save({
-					chopID: chop.chopID
-				}, {
-					teamID: teamID,
-					shares: shares
-				}, function (data) {
+			addChopParticipant: function (chop, participant) {
+				ChopParticipant.save(chop, participant, function (data) {
 					chop.participants[data.chopParticipantID] = data;
 				}, AJAXError);
 			},
-			addPool: function (teamID, poolDescription) {
-				Pool.save({
-					teamID: teamID,
-					description: poolDescription
-				}, function (data) {
+			addEntry: function (entry) {
+				if (entry.fromPoolID === "") {
+					delete entry.fromPoolID;
+				}
+				if (entry.intoPoolID === "") {
+					delete entry.intoPoolID;
+				}
+				entry.entered = (new Date()).toISOString();
+				entry.played = entry.entered;
+				Entry.save({}, entry, function (data) {
+					ret.entries[data.entryID] = data;
+				}, AJAXError);
+			},
+			addPool: function (pool) {
+				Pool.save({}, pool, function (data) {
 					ret.pools[data.poolID] = data;
 				}, AJAXError);
 			},
-			addTeam: function (teamName) {
-				Team.save({
-					name: teamName
-				}, function (data) {
+			addTeam: function (team) {
+				Team.save({}, team, function (data) {
 					ret.teams[data.teamID] = data;
 					ret.pools[data.triprollPool.poolID] = data.triprollPool;
 				}, AJAXError);
@@ -78,11 +80,18 @@
 				}, AJAXError);
 			},
 			deleteChopParticipant: function (chop, participant) {
-				ChopParticipant.delete({
+				ChopParticipant.remove({
 					chopID: chop.chopID,
 					chopParticipantID: participant.chopParticipantID
 				}, function () {
 					delete chop.participants[participant.chopParticipantID];
+				}, AJAXError);
+			},
+			deleteEntry: function (entry) {
+				Entry.remove({
+					entryID: entry.entryID
+				}, function () {
+					delete ret.entries[entry.entryID];
 				}, AJAXError);
 			},
 			saveChop: function (chop) {
@@ -107,6 +116,7 @@
 					}, angular.noop, AJAXError);
 				});
 			}, AJAXError),
+			entries: Entry.get(angular.noop, AJAXError),
 			pools: Pool.get(angular.noop, AJAXError),
 			teams: Team.get(angular.noop, AJAXError)
 		};
@@ -122,6 +132,16 @@
 			deleteChopParticipant: GamblingData.deleteChopParticipant,
 			saveChop: GamblingData.saveChop,
 			teams: GamblingData.teams
+		};
+	}]);
+
+	app.controller("EntriesCtrl", ["$scope", "GamblingData", function ($scope, GamblingData) {
+		$scope.model = {
+			addEntry: GamblingData.addEntry,
+			chops: GamblingData.chops,
+			deleteEntry: GamblingData.deleteEntry,
+			entries: GamblingData.entries,
+			pools: GamblingData.pools
 		};
 	}]);
 
