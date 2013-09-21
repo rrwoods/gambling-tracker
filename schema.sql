@@ -46,9 +46,10 @@ CREATE TABLE IF NOT EXISTS entries
 
 CREATE TABLE IF NOT EXISTS chopParticipants
 (
-	chopID INTEGER NOT NULL REFERENCES chops(chopID),
-	teamID INTEGER NOT NULL REFERENCES teams(teamID),
-	shares INTEGER NOT NULL
+	chopParticipantID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	chopID            INTEGER NOT NULL REFERENCES chops(chopID),
+	teamID            INTEGER NOT NULL REFERENCES teams(teamID),
+	shares            INTEGER NOT NULL
 );
 
 
