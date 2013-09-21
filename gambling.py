@@ -1,8 +1,4 @@
 import bottle
-# Any function with a route should return a JSON string, but Bottle doesn't
-# automatically translate lists/tuples into JSON, so use this library to do it
-# manually
-import json
 import sqlite3
 
 SQLITE3_DATABASE = "2013.sqlite3"
@@ -101,51 +97,54 @@ def chopsEdit(chopID):
 		"description": description
 	}
 
-@bottle.route("/chops/participants")
-def chopsParticipants():
-	chopID = int(queryParameter("chopID"))
+@bottle.route("/chops/<chopID>/participants", method = "GET")
+def chopsParticipants(chopID):
 	rows = connection.execute("""
 		SELECT
+			chopParticipantID,
 			teamID,
 			shares
 		FROM chopParticipants
 		WHERE chopID = ?
 		ORDER BY teamID ASC
 	""", (chopID, ))
-	return json.dumps([{
-		"teamID": int(row[0]),
-		"shares": int(row[1])
-	} for row in rows])
+	ret = {}
+	for row in rows:
+		chopParticipantID = int(row[0])
+		ret[chopParticipantID] = {
+			"chopParticipantID": chopParticipantID,
+			"teamID": int(row[1]),
+			"shares": int(row[2])
+		}
+	return ret
 
-@bottle.route("/chops/participants/add", method = "POST")
-def chopsParticipantsAdd():
-	chopID = int(formParameter("chopID"))
-	teamID = int(formParameter("teamID"))
-	shares = int(formParameter("shares"))
-	connection.execute("""
+@bottle.route("/chops/<chopID>/participants", method = "POST")
+def chopsParticipantsAdd(chopID):
+	teamID = int(jsonParameter("teamID"))
+	shares = int(jsonParameter("shares"))
+	cursor = connection.cursor()
+	cursor.execute("""
 		INSERT INTO chopParticipants(chopID, teamID, shares)
 		VALUES (?, ?, ?)
 	""", (chopID, teamID, shares))
+	chopParticipantID = cursor.lastrowid
 	connection.commit()
 	return {
+		"chopParticipantID": chopParticipantID,
 		"chopID": chopID,
 		"teamID": teamID,
 		"shares": shares
 	}
 
-@bottle.route("/chops/participants/delete", method = "POST")
-def chopsParticipantsDelete():
-	chopID = int(formParameter("chopID"))
-	teamID = int(formParameter("teamID"))
+@bottle.route("/chops/<chopID>/participants/<chopParticipantID>", method = "DELETE")
+def chopsParticipantsDelete(chopID, chopParticipantID):
 	cursor = connection.cursor()
 	cursor.execute("""
 		DELETE FROM chopParticipants
-		WHERE
-			chopID = ? AND
-			teamID = ?
-	""", (chopID, teamID))
+		WHERE chopParticipantID = ?
+	""", (chopParticipantID, ))
 	if 1 != cursor.rowcount:
-		raise bottle.HTTPResponse(status = 400, body = "Must specify the chopID and teamID of an existing chop participant")
+		raise bottle.HTTPResponse(status = 400, body = "Must specify the chopParticipantID of an existing chop participant")
 	connection.commit()
 	return {}
 
@@ -169,13 +168,6 @@ def execute():
 		ret[rowCount] = row
 		rowCount += 1
 	return ret
-
-def formParameter(name):
-	if name in bottle.request.forms:
-		# Use getattr to take advantage of Bottle automatically decoding the
-		# parameter
-		return getattr(bottle.request.forms, name)
-	raise bottle.HTTPResponse(status = 400, body = "Expected form parameter " + name)
 
 @bottle.route("/")
 def index():
@@ -270,13 +262,6 @@ def poolsEdit(poolID):
 		"teamID": teamID,
 		"description": description
 	}
-
-def queryParameter(name):
-	if name in bottle.request.query:
-		# Use getattr to take advantage of Bottle automatically decoding the
-		# parameter
-		return getattr(bottle.request.query, name)
-	raise bottle.HTTPResponse(status = 400, body = "Expected query parameter " + name)
 
 @bottle.route("/teams", method = "GET")
 def teams():

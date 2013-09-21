@@ -40,15 +40,24 @@
 							<th>Actual</th>
 							<th>Operations</th>
 						</tr></thead>
-						<tr>
-							<td><select class="form-control" data-ng-model="model.addChopParticipantTeamID">
-								<option data-ng-repeat="team in model.teams" value="{{team.teamID}}">{{team.name}}</option>
-							</select></td>
-							<td><input class="form-control" placeholder="Shares" type="Text" size="3" data-ng-model="model.addChopParticipantShares"></td>
-							<td></td>
-							<td></td>
-							<td><button class="btn btn-default">Add Participant</button></td>
-						</tr>
+						<tbody>
+							<tr data-ng-repeat="participant in chop.participants">
+								<td>{{model.teams[participant.teamID].name}}</td>
+								<td>{{participant.shares}}</td>
+								<td></td>
+								<td></td>
+								<td><button class="btn btn-default" data-ng-click="model.deleteChopParticipant(chop, participant)">Delete</button></td>
+							</tr>
+							<tr>
+								<td><select class="form-control" data-ng-model="model.addChopParticipantTeamID">
+									<option data-ng-repeat="team in model.teams" value="{{team.teamID}}">{{team.name}}</option>
+								</select></td>
+								<td><input class="form-control" placeholder="Shares" type="Text" size="3" data-ng-model="model.addChopParticipantShares"></td>
+								<td></td>
+								<td></td>
+								<td><button class="btn btn-default" data-ng-click="model.addChopParticipant(chop, model.addChopParticipantTeamID, model.addChopParticipantShares)">Add Participant</button></td>
+							</tr>
+						</tbody>
 					</table>
 					<p>
 						<button class="btn btn-default" data-ng-click="model.saveChop(chop)">Save</button>
@@ -135,7 +144,6 @@
 		</div>
 	</div>
 </div>
-<script src="js/jquery-1.9.1.min.js" type="text/javascript"></script>
 <script src="js/angular.min.js" type="text/javascript"></script>
 <script src="js/angular-resource.min.js" type="text/javascript"></script>
 <script src="js/index.js" type="text/javascript"></script>
