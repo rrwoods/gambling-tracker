@@ -56,7 +56,9 @@
 					<div class="panel-heading">
 						<input class="form-control" placeholder="Chop Name" type="text" data-ng-model="chop.description">
 					</div>
-					<p>Started {{chop.started}}</p>
+					<p>Started: {{chop.started}}</p>
+					<p>Total amount: {{model.totalAmount(chop)}}</p>
+					<p>Total shares: {{model.totalShares(chop)}}</p>
 					<table border="1" class="table table-bordered table-condensed table-hover">
 						<thead><tr>
 							<th>Team</th>
@@ -70,7 +72,7 @@
 								<td>{{model.teams[participant.teamID].name}}</td>
 								<td>{{participant.shares}}</td>
 								<td>{{participant.amount}}</td>
-								<td>{{chop.totalAmount * participant.shares / chop.totalShares}}</td>
+								<td>{{model.totalAmount(chop) * participant.shares / model.totalShares(chop)}}</td>
 								<td><button class="btn btn-default" data-ng-click="model.deleteChopParticipant(chop, participant)">Delete</button></td>
 							</tr>
 							<tr>

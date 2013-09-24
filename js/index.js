@@ -40,10 +40,15 @@
 			addChop: function (chop) {
 				Chop.save({}, chop, function (data) {
 					ret.chops[data.chopID] = data;
+					// A new chop has no participants and we don't need to
+					// check that against the server, so just set it here
+					data.participants = {};
 				}, AJAXError);
 			},
 			addChopParticipant: function (chop, participant) {
-				ChopParticipant.save(chop, participant, function (data) {
+				ChopParticipant.save({
+					chopID: chop.chopID
+				}, participant, function (data) {
 					chop.participants[data.chopParticipantID] = data;
 				}, AJAXError);
 			},
@@ -111,16 +116,9 @@
 			},
 			chops: Chop.get(function (chops) {
 				angular.forEach(chops, function (chop) {
-					chop.totalAmount = 0;
-					chop.totalShares = 0;
 					chop.participants = ChopParticipant.get({
 						chopID: chop.chopID
-					}, function (chopParticipants) {
-						angular.forEach(chopParticipants, function (chopParticipant) {
-							chop.totalAmount += chopParticipant.amount;
-							chop.totalShares += chopParticipant.shares;
-						})
-					}, AJAXError);
+					}, angular.noop, AJAXError);
 				});
 			}, AJAXError),
 			entries: Entry.get(angular.noop, AJAXError),
@@ -138,7 +136,21 @@
 			closeChop: GamblingData.closeChop,
 			deleteChopParticipant: GamblingData.deleteChopParticipant,
 			saveChop: GamblingData.saveChop,
-			teams: GamblingData.teams
+			teams: GamblingData.teams,
+			totalAmount: function(chop) {
+				var ret = 0;
+				angular.forEach(chop.participants, function (participant) {
+					ret += participant.amount;
+				});
+				return ret;
+			},
+			totalShares: function(chop) {
+				var ret = 0;
+				angular.forEach(chop.participants, function (participant) {
+					ret += participant.shares;
+				});
+				return ret;
+			}
 		};
 	}]);
 
