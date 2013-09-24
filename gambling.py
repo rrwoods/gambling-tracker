@@ -98,26 +98,41 @@ def chopsParticipants(chopID):
 			teamID,
 			shares,
 			(
-				SELECT total(amount)
+				SELECT sum(amount)
 				FROM entries JOIN pools ON entries.intoPoolID = pools.poolID
-				WHERE pools.teamID = chopParticipants.teamID
-			) - (
-				SELECT total(amount)
+				WHERE
+					entries.chopID = :chopID AND
+					pools.teamID = chopParticipants.teamID
+			) as intoAmount,
+			(
+				SELECT sum(amount)
 				FROM entries JOIN pools ON entries.fromPoolID = pools.poolID
-				WHERE pools.teamID = chopParticipants.teamID
-			) as amount
+				WHERE
+					entries.chopID = :chopID AND
+					pools.teamID = chopParticipants.teamID
+			) as fromAmount
 		FROM chopParticipants
-		WHERE chopID = ?
+		WHERE chopID = :chopID
 		ORDER BY teamID ASC
-	""", (chopID, ))
+	""", {
+		"chopID": chopID
+	})
 	ret = {}
 	for row in rows:
 		chopParticipantID = int(row[0])
+		# SQL sum() returns NULL without any rows
+		intoAmount = intOrNone(row[3])
+		if intoAmount is None:
+			intoAmount = 0
+		# SQL sum() returns NULL without any rows
+		fromAmount = intOrNone(row[4])
+		if fromAmount is None:
+			fromAmount = 0
 		ret[chopParticipantID] = {
 			"chopParticipantID": chopParticipantID,
 			"teamID": int(row[1]),
 			"shares": int(row[2]),
-			"amount": float(row[3]),
+			"amount": intoAmount - fromAmount,
 		}
 	return ret
 
@@ -132,11 +147,40 @@ def chopsParticipantsAdd(chopID):
 	""", (chopID, teamID, shares))
 	chopParticipantID = cursor.lastrowid
 	connection.commit()
+	rows = connection.execute("""
+		SELECT
+			(
+				SELECT sum(amount)
+				FROM entries JOIN pools ON entries.intoPoolID = pools.poolID
+				WHERE
+					entries.chopID = :chopID AND
+					pools.teamID = :teamID
+			) as intoAmount,
+			(
+				SELECT sum(amount)
+				FROM entries JOIN pools ON entries.fromPoolID = pools.poolID
+				WHERE
+					entries.chopID = :chopID AND
+					pools.teamID = :teamID
+			) as fromAmount
+	""", {
+		"chopID": chopID,
+		"teamID": teamID
+	})
+	for row in rows:
+		# SQL sum() returns NULL without any rows
+		intoAmount = intOrNone(row[0])
+		if intoAmount is None:
+			intoAmount = 0
+		# SQL sum() returns NULL without any rows
+		fromAmount = intOrNone(row[1])
+		if fromAmount is None:
+			fromAmount = 0
 	return {
 		"chopParticipantID": chopParticipantID,
-		"chopID": chopID,
 		"teamID": teamID,
 		"shares": shares,
+		"amount": intoAmount - fromAmount
 	}
 
 @bottle.route("/chops/<chopID>/participants/<chopParticipantID>", method = "DELETE")
