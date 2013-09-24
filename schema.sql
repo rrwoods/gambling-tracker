@@ -34,14 +34,14 @@ CREATE TABLE IF NOT EXISTS teams
 
 CREATE TABLE IF NOT EXISTS entries
 (
-	entryID     INTEGER        NOT NULL PRIMARY KEY AUTOINCREMENT,
-	chopID      INT            NOT NULL REFERENCES chops(chopID),
-	fromPoolID  INTEGER                 REFERENCES pools(poolID),
-	intoPoolID  INTEGER                 REFERENCES pools(poolID),
-	amount      DECIMAL(20, 2) NOT NULL,
-	description VARCHAR(256)   NOT NULL,
-	entered     TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	played      TIMESTAMP      NOT NULL
+	entryID     INTEGER      NOT NULL PRIMARY KEY AUTOINCREMENT,
+	chopID      INT          NOT NULL REFERENCES chops(chopID),
+	fromPoolID  INTEGER               REFERENCES pools(poolID),
+	intoPoolID  INTEGER               REFERENCES pools(poolID),
+	amount      INTEGER      NOT NULL,
+	description VARCHAR(256) NOT NULL,
+	entered     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	played      TIMESTAMP    NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS chopParticipants
