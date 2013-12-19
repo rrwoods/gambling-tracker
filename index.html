@@ -53,8 +53,11 @@
 			<h1>Chops</h1>
 			<div class="row" data-ng-repeat="row in model.chops | noDefaultChops:model.teams | makeRows:2">
 				<div class="col-lg-6 panel" data-ng-repeat="chop in row">
-					<div class="panel-heading">
+					<div class="input-group panel-heading">
 						<input class="form-control" placeholder="Chop Name" type="text" data-ng-model="chop.description">
+						<span class="input-group-btn">
+							<button class="btn btn-default" data-ng-click="model.saveChop(chop)">Rename</button>
+						</span>
 					</div>
 					<p>Started: {{chop.started}}</p>
 					<p>Total amount: {{model.totalAmount(chop)}}</p>
@@ -87,19 +90,18 @@
 						</tbody>
 					</table>
 					<p>
-						<button class="btn btn-default" data-ng-click="model.saveChop(chop)">Save</button>
 						<button class="btn btn-danger" data-ng-click="model.closeChop(chop)">Close Chop</button>
 					</p>
 				</div>
 			</div>
 			<div class="row">
 				<div class="col-lg-6 panel">
-					<div class="panel-heading">
+					<div class="input-group panel-heading">
 						<input class="form-control" placeholder="Chop Name" type="text" data-ng-model="model.newChop.description">
+						<span class="input-group-btn">
+							<button class="btn btn-default" data-ng-click="model.addChop(model.newChop)">Add Chop</button>
+						</span>
 					</div>
-					<p>
-						<button class="btn btn-default" data-ng-click="model.addChop(model.newChop)">Add Chop</button>
-					</p>
 				</div>
 			</div>
 		</div>
