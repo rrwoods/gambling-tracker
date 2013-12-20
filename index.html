@@ -29,19 +29,25 @@
 					</tr>
 					<tr>
 						<td>Now</td>
-						<td><select class="form-control" data-ng-model="model.newEntry.chopID">
-									<option data-ng-repeat="chop in model.chops" value="{{chop.chopID}}">{{chop.description}}</option>
-						</select></td>
+						<td>
+							<select class="form-control" data-ng-model="model.newEntry.chopID">
+								<option data-ng-repeat="chop in model.chops" value="{{chop.chopID}}">{{chop.description}}</option>
+							</select>
+						</td>
 						<td><input class="form-control" placeholder="Amount" size="4" type="text" data-ng-model="model.newEntry.amount"></td>
 						<td><input class="form-control" placeholder="Description" type="text" data-ng-model="model.newEntry.description"></td>
-						<td><select class="form-control" data-ng-model="model.newEntry.fromPoolID">
-							<option selected="1" value=""></option>
-							<option data-ng-repeat="pool in model.pools" value="{{pool.poolID}}">{{pool.description}}</option>
-						</select></td>
-						<td><select class="form-control" data-ng-model="model.newEntry.intoPoolID">
-							<option selected="1" value=""></option>
-							<option data-ng-repeat="pool in model.pools" value="{{pool.poolID}}">{{pool.description}}</option>
-						</select></td>
+						<td>
+							<select class="form-control" data-ng-model="model.newEntry.fromPoolID">
+								<option selected="1" value=""></option>
+								<option data-ng-repeat="pool in model.pools" value="{{pool.poolID}}">{{pool.description}}</option>
+							</select>
+						</td>
+						<td>
+							<select class="form-control" data-ng-model="model.newEntry.intoPoolID">
+								<option selected="1" value=""></option>
+								<option data-ng-repeat="pool in model.pools" value="{{pool.poolID}}">{{pool.description}}</option>
+							</select>
+						</td>
 						<td><button class="btn btn-default" data-ng-click="model.addEntry(model.newEntry)">Add Entry</button></td>
 					</tr>
 				</tbody>
@@ -79,9 +85,11 @@
 								<td><button class="btn btn-default" data-ng-click="model.deleteChopParticipant(chop, participant)">Delete</button></td>
 							</tr>
 							<tr>
-								<td><select class="form-control" data-ng-model="model.newChopParticipant.teamID">
-									<option data-ng-repeat="team in model.teams" value="{{team.teamID}}">{{team.name}}</option>
-								</select></td>
+								<td>
+									<select class="form-control" data-ng-model="model.newChopParticipant.teamID">
+										<option data-ng-repeat="team in model.teams" value="{{team.teamID}}">{{team.name}}</option>
+									</select>
+								</td>
 								<td><input class="form-control" placeholder="Shares" type="Text" size="3" data-ng-model="model.newChopParticipant.shares"></td>
 								<td></td>
 								<td></td>
@@ -124,9 +132,11 @@
 						<td><button class="btn btn-default" data-ng-click="model.savePool(pool)">Save</button></td>
 					</tr>
 					<tr>
-						<td><select class="form-control" data-ng-model="model.newPool.teamID">
-							<option data-ng-repeat="team in model.teams" value="{{team.teamID}}">{{team.name}}</option>
-						</select></td>
+						<td>
+							<select class="form-control" data-ng-model="model.newPool.teamID">
+								<option data-ng-repeat="team in model.teams" value="{{team.teamID}}">{{team.name}}</option>
+							</select>
+						</td>
 						<td><input class="form-control" placeholder="Description" type="text" data-ng-model="model.newPool.description"></td>
 						<td>0</td>
 						<td><button class="btn btn-default" data-ng-click="model.addPool(model.newPool)">Add Pool</button></td>
