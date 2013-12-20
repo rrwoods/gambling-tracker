@@ -154,7 +154,8 @@
 			chops: GamblingData.chops,
 			deleteEntry: GamblingData.deleteEntry,
 			entries: GamblingData.entries,
-			pools: GamblingData.pools
+			pools: GamblingData.pools,
+			teams: GamblingData.teams
 		};
 	}]);
 
