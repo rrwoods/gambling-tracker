@@ -114,13 +114,7 @@
 					teamID: team.teamID
 				}, team, angular.noop, AJAXError);
 			},
-			chops: Chop.get(function (chops) {
-				angular.forEach(chops, function (chop) {
-					chop.participants = ChopParticipant.get({
-						chopID: chop.chopID
-					}, angular.noop, AJAXError);
-				});
-			}, AJAXError),
+			chops: Chop.get(angular.noop, AJAXError),
 			entries: Entry.get(angular.noop, AJAXError),
 			pools: Pool.get(angular.noop, AJAXError),
 			teams: Team.get(angular.noop, AJAXError)

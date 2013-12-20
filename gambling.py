@@ -7,7 +7,7 @@ connection = sqlite3.connect(SQLITE3_DATABASE)
 
 @bottle.route("/chops", method = "GET")
 def chops():
-	rows = connection.execute("""
+	chopRows = connection.execute("""
 		SELECT
 			chopID,
 			description,
@@ -17,13 +17,56 @@ def chops():
 		ORDER BY chopID ASC
 	""")
 	ret = {}
-	for row in rows:
-		chopID = int(row[0])
+	for chopRow in chopRows:
+		chopID = int(chopRow[0])
+		participants = {}
+		participantRows = connection.execute("""
+			SELECT
+				chopParticipantID,
+				teamID,
+				shares,
+				(
+					SELECT sum(amount)
+					FROM entries JOIN pools ON entries.intoPoolID = pools.poolID
+					WHERE
+						entries.chopID = :chopID AND
+						pools.teamID = chopParticipants.teamID
+				) as intoAmount,
+				(
+					SELECT sum(amount)
+					FROM entries JOIN pools ON entries.fromPoolID = pools.poolID
+					WHERE
+						entries.chopID = :chopID AND
+						pools.teamID = chopParticipants.teamID
+				) as fromAmount
+			FROM chopParticipants
+			WHERE chopID = :chopID
+			ORDER BY teamID ASC
+		""", {
+			"chopID": chopID
+		})
+		for participantRow in participantRows:
+			chopParticipantID = int(participantRow[0])
+			# SQL sum() returns NULL without any rows
+			intoAmount = intOrNone(participantRow[3])
+			if intoAmount is None:
+				intoAmount = 0
+			# SQL sum() returns NULL without any rows
+			fromAmount = intOrNone(participantRow[4])
+			if fromAmount is None:
+				fromAmount = 0
+			participants[chopParticipantID] = {
+				"chopParticipantID": chopParticipantID,
+				"teamID": int(participantRow[1]),
+				"shares": int(participantRow[2]),
+				"amount": intoAmount - fromAmount,
+			}
 		ret[chopID] = {
 			"chopID": chopID,
-			"description": str(row[1]),
+			"description": str(chopRow[1]),
 			"ended": None,
-			"started": str(row[2]),
+			"participants": participants,
+			"started": str(chopRow[2]),
 		}
 	return ret
 
@@ -89,52 +132,6 @@ def chopsEdit(chopID):
 		"chopID": chopID,
 		"description": description,
 	}
-
-@bottle.route("/chops/<chopID>/participants", method = "GET")
-def chopsParticipants(chopID):
-	rows = connection.execute("""
-		SELECT
-			chopParticipantID,
-			teamID,
-			shares,
-			(
-				SELECT sum(amount)
-				FROM entries JOIN pools ON entries.intoPoolID = pools.poolID
-				WHERE
-					entries.chopID = :chopID AND
-					pools.teamID = chopParticipants.teamID
-			) as intoAmount,
-			(
-				SELECT sum(amount)
-				FROM entries JOIN pools ON entries.fromPoolID = pools.poolID
-				WHERE
-					entries.chopID = :chopID AND
-					pools.teamID = chopParticipants.teamID
-			) as fromAmount
-		FROM chopParticipants
-		WHERE chopID = :chopID
-		ORDER BY teamID ASC
-	""", {
-		"chopID": chopID
-	})
-	ret = {}
-	for row in rows:
-		chopParticipantID = int(row[0])
-		# SQL sum() returns NULL without any rows
-		intoAmount = intOrNone(row[3])
-		if intoAmount is None:
-			intoAmount = 0
-		# SQL sum() returns NULL without any rows
-		fromAmount = intOrNone(row[4])
-		if fromAmount is None:
-			fromAmount = 0
-		ret[chopParticipantID] = {
-			"chopParticipantID": chopParticipantID,
-			"teamID": int(row[1]),
-			"shares": int(row[2]),
-			"amount": intoAmount - fromAmount,
-		}
-	return ret
 
 @bottle.route("/chops/<chopID>/participants", method = "POST")
 def chopsParticipantsAdd(chopID):
