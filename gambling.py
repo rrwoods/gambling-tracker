@@ -288,6 +288,10 @@ def execute():
 		rowCount += 1
 	return ret
 
+@bottle.route("/fonts/<filename:path>")
+def fonts(filename):
+	return bottle.static_file(filename, root = "fonts/")
+
 @bottle.route("/")
 def index():
 	return bottle.static_file("index.html", root = ".")
