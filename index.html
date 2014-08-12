@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html data-ng-app="gamblingApp">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<link rel="stylesheet" href="css/bootstrap.min.css">
+<link rel="stylesheet" href="css/bootstrap.css">
 <title>Gambling Tracker</title>
 <div class="container">
 	<div class="row">
@@ -58,57 +58,63 @@
 		<div class="col-lg-12" data-ng-controller="ChopsCtrl">
 			<h1>Chops</h1>
 			<div class="row" data-ng-repeat="row in model.chops | noDefaultChops:model.teams | makeRows:2">
-				<div class="col-lg-6 panel" data-ng-repeat="chop in row">
-					<div class="input-group panel-heading">
-						<input class="form-control" placeholder="Chop Name" type="text" data-ng-model="chop.description">
-						<span class="input-group-btn">
-							<button class="btn btn-default" data-ng-click="model.saveChop(chop)">Rename</button>
-						</span>
+				<div class="col-lg-6" data-ng-repeat="chop in row">
+					<div class="panel panel-default">
+						<div class="input-group panel-heading">
+							<input class="form-control" placeholder="Chop Name" type="text" data-ng-model="chop.description">
+							<span class="input-group-btn">
+								<button class="btn btn-default" data-ng-click="model.saveChop(chop)">Rename</button>
+							</span>
+						</div>
+						<div class="panel-body">
+							<p>Started: {{chop.started}}</p>
+							<p>Total amount: {{model.totalAmount(chop)}}</p>
+							<p>Total shares: {{model.totalShares(chop)}}</p>
+							<p>
+								<button class="btn btn-danger" data-ng-click="model.closeChop(chop)">Close Chop</button>
+							</p>
+						</div>
+						<table border="1" class="table table-bordered table-condensed table-hover">
+							<thead><tr>
+								<th>Team</th>
+								<th>Shares</th>
+								<th>Amount</th>
+								<th>Fair</th>
+								<th>Operations</th>
+							</tr></thead>
+							<tbody>
+								<tr data-ng-repeat="participant in chop.participants">
+									<td>{{model.teams[participant.teamID].name}}</td>
+									<td>{{participant.shares}}</td>
+									<td>{{participant.amount}}</td>
+									<td>{{model.totalAmount(chop) * participant.shares / model.totalShares(chop)}}</td>
+									<td><button class="btn btn-default" data-ng-click="model.deleteChopParticipant(chop, participant)">Delete</button></td>
+								</tr>
+								<tr>
+									<td>
+										<select class="form-control" data-ng-model="model.newChopParticipant.teamID">
+											<option data-ng-repeat="team in model.teams" value="{{team.teamID}}">{{team.name}}</option>
+										</select>
+									</td>
+									<td><input class="form-control" placeholder="Shares" type="Text" size="3" data-ng-model="model.newChopParticipant.shares"></td>
+									<td></td>
+									<td></td>
+									<td><button class="btn btn-default" data-ng-click="model.addChopParticipant(chop, model.newChopParticipant)">Add Participant</button></td>
+								</tr>
+							</tbody>
+						</table>
 					</div>
-					<p>Started: {{chop.started}}</p>
-					<p>Total amount: {{model.totalAmount(chop)}}</p>
-					<p>Total shares: {{model.totalShares(chop)}}</p>
-					<table border="1" class="table table-bordered table-condensed table-hover">
-						<thead><tr>
-							<th>Team</th>
-							<th>Shares</th>
-							<th>Amount</th>
-							<th>Fair</th>
-							<th>Operations</th>
-						</tr></thead>
-						<tbody>
-							<tr data-ng-repeat="participant in chop.participants">
-								<td>{{model.teams[participant.teamID].name}}</td>
-								<td>{{participant.shares}}</td>
-								<td>{{participant.amount}}</td>
-								<td>{{model.totalAmount(chop) * participant.shares / model.totalShares(chop)}}</td>
-								<td><button class="btn btn-default" data-ng-click="model.deleteChopParticipant(chop, participant)">Delete</button></td>
-							</tr>
-							<tr>
-								<td>
-									<select class="form-control" data-ng-model="model.newChopParticipant.teamID">
-										<option data-ng-repeat="team in model.teams" value="{{team.teamID}}">{{team.name}}</option>
-									</select>
-								</td>
-								<td><input class="form-control" placeholder="Shares" type="Text" size="3" data-ng-model="model.newChopParticipant.shares"></td>
-								<td></td>
-								<td></td>
-								<td><button class="btn btn-default" data-ng-click="model.addChopParticipant(chop, model.newChopParticipant)">Add Participant</button></td>
-							</tr>
-						</tbody>
-					</table>
-					<p>
-						<button class="btn btn-danger" data-ng-click="model.closeChop(chop)">Close Chop</button>
-					</p>
 				</div>
 			</div>
 			<div class="row">
-				<div class="col-lg-6 panel">
-					<div class="input-group panel-heading">
-						<input class="form-control" placeholder="Chop Name" type="text" data-ng-model="model.newChop.description">
-						<span class="input-group-btn">
-							<button class="btn btn-default" data-ng-click="model.addChop(model.newChop)">Add Chop</button>
-						</span>
+				<div class="col-lg-6">
+					<div class="panel panel-default">
+						<div class="input-group panel-heading">
+							<input class="form-control" placeholder="Chop Name" type="text" data-ng-model="model.newChop.description">
+							<span class="input-group-btn">
+								<button class="btn btn-default" data-ng-click="model.addChop(model.newChop)">Add Chop</button>
+							</span>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -182,7 +188,7 @@
 		</div>
 	</div>
 </div>
-<script src="js/angular.min.js" type="text/javascript"></script>
-<script src="js/angular-resource.min.js" type="text/javascript"></script>
+<script src="js/angular.js" type="text/javascript"></script>
+<script src="js/angular-resource.js" type="text/javascript"></script>
 <script src="js/index.js" type="text/javascript"></script>
 </html>
