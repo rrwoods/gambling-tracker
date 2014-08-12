@@ -8,7 +8,7 @@
 
 <div data-ng-controller="EntriesCtrl">
 	<h1>Entries</h1>
-	<table border="1" class="table table-bordered table-condensed table-striped">
+	<table class="table table-bordered table-condensed table-striped">
 		<thead><tr>
 			<th>Date</th>
 			<th>From</th>
@@ -32,13 +32,25 @@
 				<td>Now</td>
 				<td>
 					<select class="form-control" data-ng-change="model.newEntry.chopID = model.teams[model.pools[model.newEntry.fromPoolID].teamID].defaultChopID" data-ng-model="model.newEntry.fromPoolID">
-						<option selected="1" value=""></option>
+						<!--
+							Use a space rather than a completely empty element
+							to specify that choosing none of the actual pools is
+							legal rather than having it be the placeholder as
+							defined in the HTML 5.1 spec.
+						-->
+						<option selected value=""> </option>
 						<option data-ng-repeat="pool in model.pools" value="{{pool.poolID}}">{{pool.description}}</option>
 					</select>
 				</td>
 				<td>
 					<select class="form-control" data-ng-change="model.newEntry.chopID = model.teams[model.pools[model.newEntry.intoPoolID].teamID].defaultChopID" data-ng-model="model.newEntry.intoPoolID">
-						<option selected="1" value=""></option>
+						<!--
+							Use a space rather than a completely empty element
+							to specify that choosing none of the actual pools is
+							legal rather than having it be the placeholder as
+							defined in the HTML 5.1 spec.
+						-->
+						<option selected value=""> </option>
 						<option data-ng-repeat="pool in model.pools" value="{{pool.poolID}}">{{pool.description}}</option>
 					</select>
 				</td>
@@ -74,7 +86,7 @@
 						<button class="btn btn-danger" data-ng-click="model.closeChop(chop)">Close Chop</button>
 					</p>
 				</div>
-				<table border="1" class="table table-bordered table-condensed table-hover">
+				<table class="table table-bordered table-condensed table-hover">
 					<thead><tr>
 						<th>Team</th>
 						<th>Shares</th>
@@ -123,7 +135,7 @@
 <div class="row">
 <div class="col-lg-8" data-ng-controller="PoolsCtrl">
 	<h1>Pools</h1>
-	<table border="1" class="table table-bordered table-condensed table-hover">
+	<table class="table table-bordered table-condensed table-hover">
 		<thead><tr>
 			<th>Team</th>
 			<th>Description</th>
@@ -153,7 +165,7 @@
 
 <div class="col-lg-4" data-ng-controller="TeamsCtrl">
 	<h1>Teams</h1>
-	<table border="1" class="table table-bordered table-condensed table-hover">
+	<table class="table table-bordered table-condensed table-hover">
 		<thead><tr>
 			<th>Name</th>
 			<th></th>
@@ -181,7 +193,7 @@
 			<button class="btn btn-danger" data-ng-click="model.executeSQL(model.statement)">Execute SQL</button>
 		</span>
 	</div>
-	<table border="1" class="table table-bordered table-condensed table-hover">
+	<table class="table table-bordered table-condensed table-hover">
 		<tr data-ng-repeat="row in model.output.rows">
 			<!--
 				"track by $index" is needed here because, by default,
