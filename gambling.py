@@ -379,16 +379,28 @@ def poolsEdit(poolID):
 	""", (description, poolID))
 	connection.commit()
 	rows = cursor.execute("""
-		SELECT teamID
+		SELECT
+			teamID,
+			(
+				SELECT total(amount)
+				FROM entries
+				WHERE intoPoolID = poolID
+			) - (
+				SELECT total(amount)
+				FROM entries
+				WHERE fromPoolID = poolID
+			) as balance
 		FROM pools
 		WHERE poolID = ?
 	""", (poolID, ))
 	for row in rows:
 		teamID = int(row[0])
+		balance = float(row[1])
 	return {
 		"poolID": poolID,
 		"teamID": teamID,
 		"description": description,
+		"balance": balance,
 	}
 
 def strOrNone(var):
