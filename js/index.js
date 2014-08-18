@@ -6,8 +6,8 @@
 
 	app.factory("AJAXError", ["$window", function ($window) {
 		return function (error) {
-			$window.console.error("AJAX error " + error.status + ": " + error.data);
-			$window.alert("AJAX error; see console for more details; if you were changing data, you should reload the page");
+			$window.console.error("AJAX error: " + error.data);
+			$window.alert("AJAX error: " + error.data + ". If you were changing data, you should reload the page.");
 		};
 	}]);
 
@@ -66,13 +66,14 @@
 				}, AJAXError);
 			},
 			addPool: function (pool) {
-				Pool.save({}, pool, function (data) {
+				return Pool.save({}, pool, function (data) {
 					ret.pools[data.poolID] = data;
 				}, AJAXError);
 			},
 			addTeam: function (team) {
-				Team.save({}, team, function (data) {
+				return Team.save({}, team, function (data) {
 					ret.teams[data.teamID] = data;
+					ret.chops[data.defaultChop.chopID] = data.defaultChop;
 					ret.pools[data.triprollPool.poolID] = data.triprollPool;
 				}, AJAXError);
 			},
@@ -105,14 +106,18 @@
 				}, chop, angular.noop, AJAXError);
 			},
 			savePool: function (pool) {
-				Pool.save({
+				return Pool.save({
 					poolID: pool.poolID
-				}, pool, angular.noop, AJAXError);
+				}, pool, function (data) {
+					ret.pools[data.poolID] = data;
+				}, AJAXError);
 			},
 			saveTeam: function (team) {
-				Team.save({
+				return Team.save({
 					teamID: team.teamID
-				}, team, angular.noop, AJAXError);
+				}, team, function (data) {
+					ret.teams[data.teamID] = data;
+				}, AJAXError);
 			},
 			chops: Chop.get(angular.noop, AJAXError),
 			entries: Entry.get(angular.noop, AJAXError),
@@ -161,9 +166,20 @@
 
 	app.controller("PoolsCtrl", ["$scope", "GamblingData", function ($scope, GamblingData) {
 		$scope.model = {
-			addPool: GamblingData.addPool,
+			// This keeps track of which pool is currently being added or edited
+			detail: null,
 			pools: GamblingData.pools,
-			savePool: GamblingData.savePool,
+			saveDetail: function () {
+				if ($scope.model.detail.poolID) {
+					GamblingData.savePool($scope.model.detail).$promise.then(function () {
+						$scope.model.detail = null;
+					});
+				} else {
+					GamblingData.addPool($scope.model.detail).$promise.then(function () {
+						$scope.model.detail = null;
+					});
+				}
+			},
 			teams: GamblingData.teams
 		};
 	}]);
@@ -177,8 +193,19 @@
 
 	app.controller("TeamsCtrl", ["$scope", "GamblingData", function ($scope, GamblingData) {
 		$scope.model = {
-			addTeam: GamblingData.addTeam,
-			saveTeam: GamblingData.saveTeam,
+			// This keeps track of which team is currently being added or edited
+			detail: null,
+			saveDetail: function () {
+				if ($scope.model.detail.teamID) {
+					GamblingData.saveTeam($scope.model.detail).$promise.then(function () {
+						$scope.model.detail = null;
+					});
+				} else {
+					GamblingData.addTeam($scope.model.detail).$promise.then(function () {
+						$scope.model.detail = null;
+					});
+				}
+			},
 			teams: GamblingData.teams
 		};
 	}]);

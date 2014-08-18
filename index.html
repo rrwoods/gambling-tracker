@@ -133,55 +133,89 @@
 </div>
 
 <div class="row">
+
 <div class="col-lg-8" data-ng-controller="PoolsCtrl">
 	<h1>Pools</h1>
-	<table class="table table-bordered table-condensed table-hover">
-		<thead><tr>
-			<th>Team</th>
-			<th>Description</th>
-			<th>Balance</th>
-			<th>Operations</th>
-		</tr></thead>
+	<table class="table table-bordered table-condensed table-hover" data-ng-hide="model.detail">
+		<thead>
+			<tr>
+				<th>Team</th>
+				<th>Description</th>
+				<th>Balance</th>
+				<th>
+					<button class="btn btn-default" data-ng-click="model.detail = {}" title="Add Pool">
+						<span class="glyphicon glyphicon-plus"></span>
+					</button>
+				</th>
+			</tr>
+		</thead>
 		<tbody>
 			<tr data-ng-repeat="pool in model.pools">
 				<td>{{model.teams[pool.teamID].name}}</td>
-				<td><input class="form-control" type="text" data-ng-model="pool.description"></td>
+				<td>{{pool.description}}</td>
 				<td>{{pool.balance}}</td>
-				<td><button class="btn btn-default" data-ng-click="model.savePool(pool)" title="Save Pool Changes"><span class="glyphicon glyphicon-ok"></span></button></td>
-			</tr>
-			<tr>
 				<td>
-					<select class="form-control" data-ng-model="model.newPool.teamID">
-						<option data-ng-repeat="team in model.teams" value="{{team.teamID}}">{{team.name}}</option>
-					</select>
+					<button class="btn btn-default" data-ng-click="model.detail = {description: pool.description, poolID: pool.poolID, teamID: pool.teamID}" title="Edit Pool">
+						<span class="glyphicon glyphicon-pencil"></span>
+					</button>
 				</td>
-				<td><input class="form-control" placeholder="Description" type="text" data-ng-model="model.newPool.description"></td>
-				<td>0</td>
-				<td><button class="btn btn-default" data-ng-click="model.addPool(model.newPool)" title="Add Pool"><span class="glyphicon glyphicon-plus"></span></button></td>
 			</tr>
 		</tbody>
 	</table>
+	<div data-ng-show="model.detail">
+		<form role="form">
+			<div class="form-group">
+				<label for="poolsEditTeam">Team</label>
+				<select class="form-control" id="poolsEditTeam" data-ng-disabled="model.detail.poolID" data-ng-model="model.detail.teamID">
+					<option data-ng-repeat="team in model.teams" data-ng-selected="model.detail.teamID == team.teamID" value="{{team.teamID}}">{{team.name}}</option>
+				</select>
+			</div>
+			<div class="form-group">
+				<label for="poolsEditDescription">Description</label>
+				<input class="form-control" id="poolsEditDescription" placeholder="Description" type="text" data-ng-model="model.detail.description">
+			</div>
+			<button class="btn btn-primary" type="submit" data-ng-click="model.saveDetail()">Save</button>
+			<button class="btn btn-default" data-ng-click="model.detail = null">Cancel</button>
+		</form>
+	</div>
 </div>
 
 <div class="col-lg-4" data-ng-controller="TeamsCtrl">
 	<h1>Teams</h1>
-	<table class="table table-bordered table-condensed table-hover">
-		<thead><tr>
-			<th>Name</th>
-			<th></th>
-		</tr></thead>
+	<table class="table table-bordered table-condensed table-hover" data-ng-hide="model.detail">
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>
+					<button class="btn btn-default" data-ng-click="model.detail = {}" title="Add Team">
+						<span class="glyphicon glyphicon-plus"></span>
+					</button>
+				</th>
+			</tr>
+		</thead>
 		<tbody>
 			<tr data-ng-repeat="team in model.teams">
-				<td><input class="form-control" type="text" data-ng-model="team.name"></td>
-				<td><button class="btn btn-default" data-ng-click="model.saveTeam(team)" title="Save Team Changes"><span class="glyphicon glyphicon-ok"></span></button></td>
-			</tr>
-			<tr>
-				<td><input class="form-control" placeholder="Name" type="text" data-ng-model="model.newTeam.name"></td>
-				<td><button class="btn btn-default" data-ng-click="model.addTeam(model.newTeam)" title="Add Team"><span class="glyphicon glyphicon-plus"></span></button></td>
+				<td>{{team.name}}</td>
+				<td>
+					<button class="btn btn-default" data-ng-click="model.detail = {name: team.name, teamID: team.teamID}" title="Edit Team">
+						<span class="glyphicon glyphicon-pencil"></span>
+					</button>
+				</td>
 			</tr>
 		</tbody>
 	</table>
+	<div data-ng-show="model.detail">
+		<form role="form">
+			<div class="form-group">
+				<label for="teamsEditTeamName">Team name</label>
+				<input class="form-control" id="teamsEditTeamName" type="text" data-ng-model="model.detail.name">
+			</div>
+			<button class="btn btn-primary" type="submit" data-ng-click="model.saveDetail()">Save</button>
+			<button class="btn btn-default" data-ng-click="model.detail = null">Cancel</button>
+		</form>
+	</div>
 </div>
+
 </div>
 
 <div data-ng-controller="SQLCtrl">
