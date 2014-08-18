@@ -414,7 +414,8 @@ def teams():
 		SELECT
 			teamID,
 			name,
-			defaultChopID
+			defaultChopID,
+			triprollPoolID
 		FROM teams
 		ORDER BY teamID ASC
 	""")
@@ -424,7 +425,8 @@ def teams():
 		ret[teamID] = {
 			"teamID": int(row[0]),
 			"name": str(row[1]),
-			"defaultChopID": int(row[2])
+			"defaultChopID": int(row[2]),
+			"triprollPoolID": int(row[3]),
 		}
 	return ret
 
@@ -432,8 +434,15 @@ def teams():
 def teamsAdd():
 	name = str(jsonParameter("name"))
 
-	defaultChop = {"description": name + " default chop"}
-	triprollPool = {"description": name + " triproll", "balance": 0.0}
+	defaultChop = {
+		"description": name + " default chop",
+		"ended": None,
+		"participants": {},
+	}
+	triprollPool = {
+		"description": name + " triproll",
+		"balance": 0.0,
+	}
 
 	cursor = connection.cursor()
 
@@ -480,7 +489,10 @@ def teamsAdd():
 	return {
 		"teamID": teamID,
 		"name": name,
+		"defaultChop": defaultChop,
+		"defaultChopID": defaultChop["chopID"],
 		"triprollPool": triprollPool,
+		"triprollPoolID": triprollPool["poolID"],
 	}
 
 # According to REST, this should be a PUT, not a POST, but AngularJS does a
@@ -494,9 +506,21 @@ def teamsEdit(teamID):
 		WHERE teamID = ?
 	""", (name, teamID))
 	connection.commit()
+	rows = connection.execute("""
+		SELECT
+			defaultChopID,
+			triprollPoolID
+		FROM teams
+		WHERE teamID = ?
+	""", (teamID, ))
+	for row in rows:
+		defaultChopID = int(row[0])
+		triprollPoolID = int(row[1])
 	return {
 		"teamID": teamID,
 		"name": name,
+		"defaultChopID": defaultChopID,
+		"triprollPoolID": triprollPoolID,
 	}
 
 if __name__ == "__main__":
