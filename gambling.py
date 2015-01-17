@@ -1,7 +1,7 @@
 import bottle
 import sqlite3
 
-SQLITE3_DATABASE = "2014.sqlite3"
+SQLITE3_DATABASE = "2015.sqlite3"
 SQLITE3_SCHEMA = "schema.sql"
 connection = sqlite3.connect(SQLITE3_DATABASE)
 
