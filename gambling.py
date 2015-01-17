@@ -94,9 +94,7 @@ def chopsAdd():
 		"started": started,
 	}
 
-# According to REST, this should be a PUT, not a POST, but AngularJS does a
-# POST by default when saving existing items
-@bottle.route("/chops/<chopID>", method = "POST")
+@bottle.route("/chops/<chopID>", method = "PUT")
 def chopsEdit(chopID):
 	ended = strOrNone(jsonParameter("ended"))
 	description = str(jsonParameter("description"))
@@ -366,9 +364,7 @@ def poolsAdd():
 		"balance": 0,
 	}
 
-# According to REST, this should be a PUT, not a POST, but AngularJS does a
-# POST by default when saving existing items
-@bottle.route("/pools/<poolID>", method = "POST")
+@bottle.route("/pools/<poolID>", method = "PUT")
 def poolsEdit(poolID):
 	description = str(jsonParameter("description"))
 	cursor = connection.cursor()
@@ -495,9 +491,7 @@ def teamsAdd():
 		"triprollPoolID": triprollPool["poolID"],
 	}
 
-# According to REST, this should be a PUT, not a POST, but AngularJS does a
-# POST by default when saving existing items
-@bottle.route("/teams/<teamID>", method = "POST")
+@bottle.route("/teams/<teamID>", method = "PUT")
 def teamsEdit(teamID):
 	name = str(jsonParameter("name"))
 	connection.execute("""

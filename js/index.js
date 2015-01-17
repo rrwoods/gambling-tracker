@@ -30,11 +30,20 @@
 	app.factory("GamblingData", ["$resource", "AJAXError", function ($resource, AJAXError) {
 		var Chop, ChopParticipant, Entry, Pool, ret, Team;
 
-		Chop = $resource("chops/:chopID");
+		// REST defines POST as adding a new item to a collection and PUT as
+		// replacing an item. $resource.save() uses POST even when the object
+		// already exists, so define custom "update" methods to use instead.
+		Chop = $resource("chops/:chopID", {}, {
+			update: {method: "PUT"},
+		});
 		ChopParticipant = $resource("chops/:chopID/participants/:chopParticipantID");
 		Entry = $resource("entries/:entryID");
-		Pool = $resource("pools/:poolID");
-		Team = $resource("teams/:teamID");
+		Pool = $resource("pools/:poolID", {}, {
+			update: {method: "PUT"},
+		});
+		Team = $resource("teams/:teamID", {}, {
+			update: {method: "PUT"},
+		});
 
 		ret = {
 			addChop: function (chop) {
@@ -79,7 +88,7 @@
 			},
 			closeChop: function (chop) {
 				chop.ended = (new Date()).toISOString();
-				Chop.save({
+				Chop.update({
 					chopID: chop.chopID
 				}, chop, function () {
 					delete ret.chops[chop.chopID];
@@ -101,19 +110,19 @@
 				}, AJAXError);
 			},
 			saveChop: function (chop) {
-				Chop.save({
+				Chop.update({
 					chopID: chop.chopID
 				}, chop, angular.noop, AJAXError);
 			},
 			savePool: function (pool) {
-				return Pool.save({
+				return Pool.update({
 					poolID: pool.poolID
 				}, pool, function (data) {
 					ret.pools[data.poolID] = data;
 				}, AJAXError);
 			},
 			saveTeam: function (team) {
-				return Team.save({
+				return Team.update({
 					teamID: team.teamID
 				}, team, function (data) {
 					ret.teams[data.teamID] = data;
