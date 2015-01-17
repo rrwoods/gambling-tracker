@@ -82,36 +82,50 @@
 					<p>Started: {{chop.started}}</p>
 					<p>Total amount: {{model.totalAmount(chop)}}</p>
 					<p>Total shares: {{model.totalShares(chop)}}</p>
-					<p>
-						<button class="btn btn-danger" data-ng-click="model.closeChop(chop)">Close Chop</button>
-					</p>
+					<p><button class="btn btn-danger" data-ng-click="model.closeChop(chop)">Close Chop</button></p>
+					<form role="form" data-ng-show="model.participantDetail[chop.chopID]">
+						<div class="form-group">
+							<label for="participantsEditTeam">Team</label>
+							<select class="form-control" id="participantsEditTeam" data-ng-disabled="model.participantDetail[chop.chopID].chopParticipantID" data-ng-model="model.participantDetail[chop.chopID].teamID">
+								<option data-ng-repeat="team in model.teams" data-ng-selected="model.participantDetail[chop.chopID].teamID == team.teamID" value="{{team.teamID}}">
+									{{team.name}}
+								</option>
+							</select>
+						</div>
+						<div class="form-group">
+							<label for="participantsEditShares">Shares</label>
+							<input class="form-control" id="participantsEditShares" placeholder="Shares" type="text" data-ng-disabled="model.participantDetail[chop.chopID].chopParticipantID" data-ng-model="model.participantDetail[chop.chopID].shares">
+						</div>
+						<button class="btn btn-primary" data-ng-click="model.saveParticipantDetail(chop)" data-ng-hide="model.participantDetail[chop.chopID].chopParticipantID">Save</button>
+						<button class="btn btn-danger" data-ng-click="model.deleteParticipantDetail(chop)" data-ng-show="model.participantDetail[chop.chopID].chopParticipantID">Delete</button>
+						<button class="btn btn-default" data-ng-click="model.participantDetail[chop.chopID] = null">Cancel</button>
+					</form>
 				</div>
-				<table class="table table-bordered table-condensed table-hover">
-					<thead><tr>
-						<th>Team</th>
-						<th>Shares</th>
-						<th>Amount</th>
-						<th>Fair</th>
-						<th>Operations</th>
-					</tr></thead>
+				<table class="table table-bordered table-condensed table-hover" data-ng-hide="model.participantDetail[chop.chopID]">
+					<thead>
+						<tr>
+							<th>Team</th>
+							<th>Shares</th>
+							<th>Amount</th>
+							<th>Fair</th>
+							<th>
+								<button class="btn btn-default" data-ng-click="model.participantDetail[chop.chopID] = {}" title="Add Participant">
+									<span class="glyphicon glyphicon-plus"></span>
+								</button>
+							</th>
+						</tr>
+					</thead>
 					<tbody>
 						<tr data-ng-repeat="participant in chop.participants">
 							<td>{{model.teams[participant.teamID].name}}</td>
 							<td>{{participant.shares}}</td>
 							<td>{{participant.amount}}</td>
 							<td>{{model.totalAmount(chop) * participant.shares / model.totalShares(chop)}}</td>
-							<td><button class="btn btn-default" data-ng-click="model.deleteChopParticipant(chop, participant)" title="Delete Participant"><span class="glyphicon glyphicon-remove"></span></button></td>
-						</tr>
-						<tr>
 							<td>
-								<select class="form-control" data-ng-model="model.newChopParticipant.teamID">
-									<option data-ng-repeat="team in model.teams" value="{{team.teamID}}">{{team.name}}</option>
-								</select>
+								<button class="btn btn-default" data-ng-click="model.participantDetail[chop.chopID] = participant" title="Edit Participant">
+									<span class="glyphicon glyphicon-pencil"></span>
+								</button>
 							</td>
-							<td><input class="form-control" placeholder="Shares" type="Text" size="3" data-ng-model="model.newChopParticipant.shares"></td>
-							<td></td>
-							<td></td>
-							<td><button class="btn btn-default" data-ng-click="model.addChopParticipant(chop, model.newChopParticipant)" title="Add Participant"><span class="glyphicon glyphicon-plus"></span></button></td>
 						</tr>
 					</tbody>
 				</table>

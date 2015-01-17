@@ -55,7 +55,7 @@
 				}, AJAXError);
 			},
 			addChopParticipant: function (chop, participant) {
-				ChopParticipant.save({
+				return ChopParticipant.save({
 					chopID: chop.chopID
 				}, participant, function (data) {
 					chop.participants[data.chopParticipantID] = data;
@@ -95,7 +95,7 @@
 				}, AJAXError);
 			},
 			deleteChopParticipant: function (chop, participant) {
-				ChopParticipant.remove({
+				return ChopParticipant.remove({
 					chopID: chop.chopID,
 					chopParticipantID: participant.chopParticipantID
 				}, function () {
@@ -139,11 +139,22 @@
 	app.controller("ChopsCtrl", ["$scope", "GamblingData", function ($scope, GamblingData) {
 		$scope.model = {
 			addChop: GamblingData.addChop,
-			addChopParticipant: GamblingData.addChopParticipant,
 			chops: GamblingData.chops,
 			closeChop: GamblingData.closeChop,
-			deleteChopParticipant: GamblingData.deleteChopParticipant,
+			deleteParticipantDetail: function(chop) {
+				GamblingData.deleteChopParticipant(chop, $scope.model.participantDetail[chop.chopID]).$promise.then(function () {
+					$scope.model.participantDetail[chop.chopID] = null;
+				});
+			},
+			// This keeps track of which chop participant is currently being
+			// added or edited for each chop
+			participantDetail: {},
 			saveChop: GamblingData.saveChop,
+			saveParticipantDetail: function(chop) {
+				GamblingData.addChopParticipant(chop, $scope.model.participantDetail[chop.chopID]).$promise.then(function () {
+					$scope.model.participantDetail[chop.chopID] = null;
+				});
+			},
 			teams: GamblingData.teams,
 			totalAmount: function(chop) {
 				var ret = 0;
